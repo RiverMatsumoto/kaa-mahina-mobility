@@ -1,0 +1,3 @@
+[submodule "src/ros2_v4l2_camera"]
+	path = src/ros2_v4l2_camera
+	url = https://gitlab.com/boldhearts/ros2_v4l2_camera.git

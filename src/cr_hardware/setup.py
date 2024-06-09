@@ -22,6 +22,7 @@ setup(
     entry_points={
         'console_scripts': [
             'arduino_driver = cr_hardware.arduino_driver:main',
+            # 'camera_node = cr_hardware.camera:main',
         ],
     },
 )

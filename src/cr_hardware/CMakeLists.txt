@@ -7,9 +7,26 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(compressed_image_transport REQUIRED)
+find_package(OpenCV REQUIRED)
+
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+include_directories(
+  ${rclcpp_INCLUDE_DIRS}
+  ${sensor_msgs_INCLUDE_DIRS}
+  ${cv_bridge_INCLUDE_DIRS}
+  ${image_transport_INCLUDE_DIRS}
+  ${compressed_image_transport_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
