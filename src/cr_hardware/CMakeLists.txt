@@ -1,30 +1,59 @@
-cmake_minimum_required(VERSION 3.8)
-project(cr_hardware)
+cmake_minimum_required(VERSION 3.16)
+project(cr_hardware LANGUAGES CXX)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(THIS_PACKAGE_INCLUDE_DEPENDS
+  hardware_interface
+  pluginlib
+  rclcpp
+  rclcpp_lifecycle
+)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(cv_bridge REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(image_transport REQUIRED)
-find_package(compressed_image_transport REQUIRED)
-find_package(OpenCV REQUIRED)
+foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
+  find_package(${Dependency} REQUIRED)
+endforeach()
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-include_directories(
-  ${rclcpp_INCLUDE_DIRS}
-  ${sensor_msgs_INCLUDE_DIRS}
-  ${cv_bridge_INCLUDE_DIRS}
-  ${image_transport_INCLUDE_DIRS}
-  ${compressed_image_transport_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
+# add_executable(cr_hardware src/differential_drive_hardware.cpp)
+add_library(
+  cr_hardware
+  SHARED
+  src/differential_drive_hardware.cpp
+)
+target_compile_features(cr_hardware PUBLIC cxx_std_17)
+target_include_directories(cr_hardware PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(cr_hardware PUBLIC
+ ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+pluginlib_export_plugin_description_file(hardware_interface cr_hardware.xml)
+
+install(TARGETS
+  cr_hardware
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(
+  DIRECTORY include/
+  DESTINATION include/cr_hardware
+)
+install(
+  DIRECTORY description/ros2_control description/urdf config launch
+  DESTINATION share/cr_hardware
+)
+install(TARGETS cr_hardware
+  EXPORT export_cr_hardware
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 
@@ -40,4 +69,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+## EXPORTS
+ament_export_targets(export_cr_hardware HAS_LIBRARY_TARGET)
+ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()
