@@ -1,0 +1,9 @@
+<library path="cr_hardware">
+    <class name="cr_hardware/DifferentialDriveHardware"
+           type="DifferentialDriveHardware"
+           base_class_type="hardware_interface::SystemInterface">
+      <description>
+        Cuberover differential drive hardware interface.
+      </description>
+    </class>
+  </library>
