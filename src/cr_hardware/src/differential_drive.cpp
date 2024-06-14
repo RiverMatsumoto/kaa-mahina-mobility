@@ -1,5 +1,5 @@
-
-#include "cr_hardware/differential_drive_hardware.hpp"
+#include "cr_hardware/differential_drive.hpp"
+#include "libroboclaw/roboclaw_driver.hpp"
 
 #include <chrono>
 #include <memory>
@@ -8,12 +8,16 @@
 #include "hardware_interface/lexical_casts.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/node.hpp"
+/*
+ros2_control architecture notes:
+- on_init: store the HardwareInfo for later use
+*/
 
-hardware_interface::CallbackReturn DifferentialDriveHardware::on_init(
+hardware_interface::CallbackReturn DifferentialDrive::on_init(
     const hardware_interface::HardwareInfo &info)
 {
-    if (
-        hardware_interface::SystemInterface::on_init(info) !=
+    if (hardware_interface::SystemInterface::on_init(info) !=
         hardware_interface::CallbackReturn::SUCCESS)
     {
         return hardware_interface::CallbackReturn::ERROR;
@@ -22,6 +26,10 @@ hardware_interface::CallbackReturn DifferentialDriveHardware::on_init(
     hw_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
     hw_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
     hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+    debug_ = info_.hardware_parameters["debug"].compare("True") == 0 ? true : false;
+    RCLCPP_INFO(
+        rclcpp::get_logger("DifferentialDrive"),
+        "DEBUG MODE: %s", debug_ ? "True" : "False");
 
     // verify and error check joint types and interfaces
     for (const hardware_interface::ComponentInfo &joint : info_.joints)
@@ -71,7 +79,7 @@ hardware_interface::CallbackReturn DifferentialDriveHardware::on_init(
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface> DifferentialDriveHardware::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> DifferentialDrive::export_state_interfaces()
 {
     std::vector<hardware_interface::StateInterface> state_interfaces;
     for (auto i = 0u; i < info_.joints.size(); i++)
@@ -84,7 +92,7 @@ std::vector<hardware_interface::StateInterface> DifferentialDriveHardware::expor
     return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> DifferentialDriveHardware::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface> DifferentialDrive::export_command_interfaces()
 {
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     for (auto i = 0u; i < info_.joints.size(); i++)
@@ -95,7 +103,7 @@ std::vector<hardware_interface::CommandInterface> DifferentialDriveHardware::exp
     return command_interfaces;
 }
 
-hardware_interface::CallbackReturn DifferentialDriveHardware::on_activate(
+hardware_interface::CallbackReturn DifferentialDrive::on_activate(
     const rclcpp_lifecycle::State &previous_state)
 {
     for (auto i = 0u; i < info_.joints.size(); i++)
@@ -106,23 +114,23 @@ hardware_interface::CallbackReturn DifferentialDriveHardware::on_activate(
     }
 
     RCLCPP_INFO(
-        rclcpp::get_logger("DifferentialDriveHardware"),
+        rclcpp::get_logger("DifferentialDrive"),
         "Differential Drive has been activated.");
 
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn DifferentialDriveHardware::on_deactivate(
+hardware_interface::CallbackReturn DifferentialDrive::on_deactivate(
     const rclcpp_lifecycle::State &previous_state)
 {
     RCLCPP_INFO(
-        rclcpp::get_logger("DifferentialDriveHardware"),
+        rclcpp::get_logger("DifferentialDrive"),
         "Differential Drive has been deactivated.");
 
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::return_type DifferentialDriveHardware::read(
+hardware_interface::return_type DifferentialDrive::read(
     const rclcpp::Time &time, const rclcpp::Duration &period)
 {
     // Read the state from the robot hardware
@@ -134,7 +142,7 @@ hardware_interface::return_type DifferentialDriveHardware::read(
     return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type DifferentialDriveHardware::write(
+hardware_interface::return_type DifferentialDrive::write(
     const rclcpp::Time &time, const rclcpp::Duration &period)
 {
     // Send the command to the robot hardware
@@ -143,18 +151,17 @@ hardware_interface::return_type DifferentialDriveHardware::write(
     if (hw_commands_[0] != 0)
     {
         RCLCPP_INFO(
-            rclcpp::get_logger("DifferentialDriveHardware"),
+            rclcpp::get_logger("DifferentialDrive"),
             "Sending velocity command to left wheel: %f", hw_commands_[0]);
     }
     if (hw_commands_[1] != 0)
     {
         RCLCPP_INFO(
-            rclcpp::get_logger("DifferentialDriveHardware"),
+            rclcpp::get_logger("DifferentialDrive"),
             "Sending velocity command to right wheel: %f", hw_commands_[1]);
-
-        return hardware_interface::return_type::OK;
     }
+    return hardware_interface::return_type::OK;
 }
 
 #include "pluginlib/class_list_macros.hpp"
-PLUGINLIB_EXPORT_CLASS(DifferentialDriveHardware, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(DifferentialDrive, hardware_interface::SystemInterface)

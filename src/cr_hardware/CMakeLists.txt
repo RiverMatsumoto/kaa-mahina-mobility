@@ -1,15 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 project(cr_hardware LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wno-unused-parameter -Wno-unused-function)
 endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
+  # start ros2 control required
   hardware_interface
   pluginlib
   rclcpp
   rclcpp_lifecycle
+  # end ros2 control required 
 )
 
 # find dependencies
@@ -18,15 +21,13 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+add_subdirectory(lib/libroboclaw)
 
-# add_executable(cr_hardware src/differential_drive_hardware.cpp)
+# compile custom ros2 control SystemInterface plugin
 add_library(
   cr_hardware
   SHARED
-  src/differential_drive_hardware.cpp
+  src/differential_drive.cpp
 )
 target_compile_features(cr_hardware PUBLIC cxx_std_17)
 target_include_directories(cr_hardware PUBLIC
@@ -34,6 +35,7 @@ target_include_directories(cr_hardware PUBLIC
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(cr_hardware PUBLIC
  ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(cr_hardware PUBLIC libroboclaw)
 
 pluginlib_export_plugin_description_file(hardware_interface cr_hardware.xml)
 
@@ -56,7 +58,6 @@ install(TARGETS cr_hardware
   RUNTIME DESTINATION bin
 )
 
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -71,5 +72,6 @@ endif()
 
 ## EXPORTS
 ament_export_targets(export_cr_hardware HAS_LIBRARY_TARGET)
+ament_export_targets(export_libroboclaw HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()

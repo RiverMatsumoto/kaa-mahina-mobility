@@ -1,11 +1,8 @@
-import os
-import subprocess
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler, ExecuteProcess
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
-from ament_index_python.packages import get_package_share_directory
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -27,10 +24,19 @@ def generate_launch_description():
             description="Start robot with mock hardware mirroring command to its states.",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "debug_diff_drive",
+            default_value="false",
+            description="Enable debug output and behavior for the diff drive controller.",
+        )
+    )
+        
 
     # Initialize Arguments
     gui = LaunchConfiguration("gui")
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
+    debug_diff_drive = LaunchConfiguration("debug_diff_drive")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -39,17 +45,10 @@ def generate_launch_description():
             " ",
             PathJoinSubstitution(
                 [FindPackageShare("cr_hardware"), "urdf", "cuberover.urdf.xacro"]),
-            " ",
-            "use_mock_hardware:=", use_mock_hardware,
+            " use_mock_hardware:=", use_mock_hardware,
+            " debug:=", debug_diff_drive,
         ]
     )
-    
-    xacro_cmd = ['xacro', f'{get_package_share_directory("cr_hardware")}/urdf/cuberover.urdf.xacro', f'use_mock_hardware:=false']
-    result = subprocess.run(xacro_cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        print('bad xacro cmd')
-        print(result.stderr)
-    xacro_cmd_output = result.stdout
     
     robot_description = {"robot_description": robot_description_content}
 
@@ -57,7 +56,7 @@ def generate_launch_description():
         [
             FindPackageShare("cr_hardware"),
             "config",
-            "differential_drive_hardware.yaml",
+            "differential_drive.yaml",
         ]
     )
     rviz_config_file = PathJoinSubstitution(
@@ -67,7 +66,7 @@ def generate_launch_description():
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_controllers],
+        parameters=[robot_controllers, {"debug_diff_drive": debug_diff_drive}],
         output="both",
         remappings=[
             ("~/robot_description", "/robot_description"),
