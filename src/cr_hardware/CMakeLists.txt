@@ -21,21 +21,25 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-add_subdirectory(lib/libroboclaw)
-
 # compile custom ros2 control SystemInterface plugin
 add_library(
   cr_hardware
   SHARED
   src/differential_drive.cpp
+  src/roboclaw.cpp
 )
 target_compile_features(cr_hardware PUBLIC cxx_std_17)
 target_include_directories(cr_hardware PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(cr_hardware PUBLIC
- ${THIS_PACKAGE_INCLUDE_DEPENDS})
-target_link_libraries(cr_hardware PUBLIC libroboclaw)
+  ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+add_executable(test_roboclaw 
+  src/test_roboclaw.cpp 
+  src/roboclaw.cpp)
+target_include_directories(test_roboclaw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(test_roboclaw PUBLIC cr_hardware)
 
 pluginlib_export_plugin_description_file(hardware_interface cr_hardware.xml)
 
@@ -46,6 +50,10 @@ install(TARGETS
 install(
   DIRECTORY include/
   DESTINATION include/cr_hardware
+)
+# script to test roboclaw connections and commands
+install(TARGETS test_roboclaw
+  DESTINATION lib/${PROJECT_NAME}
 )
 install(
   DIRECTORY description/ros2_control description/urdf config launch
@@ -72,6 +80,5 @@ endif()
 
 ## EXPORTS
 ament_export_targets(export_cr_hardware HAS_LIBRARY_TARGET)
-ament_export_targets(export_libroboclaw HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()

@@ -14,6 +14,8 @@
 #include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
 #include <rclcpp_lifecycle/state.hpp>
 #include <vector>
+// roboclaw library
+#include "cr_hardware/roboclaw.h"
 
 class DifferentialDrive : public hardware_interface::SystemInterface
                                     // public std::enable_shared_from_this<DifferentialDrive>

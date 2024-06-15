@@ -1,3 +1,0 @@
-// the configured options and settings for libroboclaw
-#define libroboclaw_VERSION_MAJOR @libroboclaw_VERSION_MAJOR@
-#define libroboclaw_VERSION_MINOR @libroboclaw_VERSION_MINOR@
