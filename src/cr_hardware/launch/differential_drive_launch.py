@@ -6,6 +6,8 @@ from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, 
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+import yaml
+import os
 
 def generate_launch_description():
     # Declare arguments
@@ -31,7 +33,12 @@ def generate_launch_description():
             description="Enable debug output and behavior for the diff drive controller.",
         )
     )
-        
+
+    diff_drive_yaml_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config', 'differential_drive.yaml'))
+    with open(diff_drive_yaml_file  , 'r') as config_file:
+        config_params = yaml.safe_load(config_file)
+    serial_port = config_params["differential_drive_params"]["ros__parameters"]["serial_port"]
+    print(serial_port)
 
     # Initialize Arguments
     gui = LaunchConfiguration("gui")
@@ -42,11 +49,10 @@ def generate_launch_description():
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            PathJoinSubstitution(
-                [FindPackageShare("cr_hardware"), "urdf", "cuberover.urdf.xacro"]),
+            " ", PathJoinSubstitution([FindPackageShare("cr_hardware"), "urdf", "cuberover.urdf.xacro"]),
             " use_mock_hardware:=", use_mock_hardware,
             " debug:=", debug_diff_drive,
+            " serial_port:=", serial_port,
         ]
     )
     

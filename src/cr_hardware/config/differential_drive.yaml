@@ -1,3 +1,8 @@
+
+differential_drive_params:
+  ros__parameters:
+    serial_port: "/dev/ttyUSB0"
+  
 controller_manager:
   ros__parameters:
     update_rate: 10  # Hz
@@ -9,7 +14,7 @@ controller_manager:
       type: diff_drive_controller/DiffDriveController
 
 diffbot_base_controller:
-  ros__parameters:
+  ros__parametersdebug_diff_drive:
     left_wheel_names: ["left_wheel_joint"]
     right_wheel_names: ["right_wheel_joint"]
 

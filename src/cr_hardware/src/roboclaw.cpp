@@ -42,7 +42,9 @@ enum
 	ROBOCLAW_ACK_BYTES = 1,
 	ROBOCLAW_CRC16_BYTES = 2,
 	ROBOCLAW_READ_MAIN_BATTERY_REPLY_BYTES = 4,
-	ROBOCLAW_READ_ENCODERS_REPLY_BYTES = 10
+	ROBOCLAW_READ_ENCODERS_REPLY_BYTES = 10,
+	ROBOCLAW_READ_SPEED_ERRORS_REPLY_BYTES = 10,
+	ROBOCLAW_READ_CURRENTS_REPLY_BYTES = 6
 };
 
 enum
@@ -149,6 +151,7 @@ enum
 	READNVM = 95, // Reloads values from Flash into Ram
 	SETCONFIG = 98,
 	GETCONFIG = 99,
+	GETSPEEDERRORS = 111,
 	SETM1MAXCURRENT = 133,
 	SETM2MAXCURRENT = 134,
 	GETM1MAXCURRENT = 135,
@@ -625,6 +628,43 @@ int roboclaw_encoders(struct roboclaw *rc, uint8_t address, int32_t *enc_m1, int
 		return ret; // IO error or retries exceeded
 
 	decode_read_encoders(rc->buffer + bytes, enc_m1, enc_m2);
+
+	return ROBOCLAW_OK;
+}
+
+
+int roboclaw_speed_error_m1m2(struct roboclaw *rc, uint8_t address, int32_t *enc_m1, int32_t *enc_m2)
+{
+	int bytes = 0;
+	int ret;
+	uint16_t sent_crc16;
+
+	rc->buffer[bytes++] = address;
+	rc->buffer[bytes++] = GETSPEEDERRORS;
+
+	if ((ret = send_cmd_wait_answer(rc, bytes, ROBOCLAW_READ_SPEED_ERRORS_REPLY_BYTES, sent_crc16)) < 0)
+		return ret; // IO error or retries exceeded
+	
+	*enc_m1 = decode_uint32_t(rc->buffer);
+	*enc_m2 = decode_uint32_t(rc->buffer + sizeof(*enc_m1));
+
+	return ROBOCLAW_OK;
+}
+
+int roboclaw_currents(struct roboclaw *rc, uint8_t address, float *current_m1, float *current_m2)
+{
+	int bytes = 0;
+	int ret;
+	uint16_t sent_crc16;
+	
+	rc->buffer[bytes++] = address;
+	rc->buffer[bytes++] = GETCURRENTS;
+
+	if ((ret = send_cmd_wait_answer(rc, bytes, ROBOCLAW_READ_CURRENTS_REPLY_BYTES, sent_crc16)) < 0)
+		return ret; // IO error or retries exceeded
+	
+	*current_m1 = (float)(decode_uint16(rc->buffer) / 10.0f);
+	*current_m2 = (float)(decode_uint16(rc->buffer + sizeof(*current_m1)) / 10.0f);
 
 	return ROBOCLAW_OK;
 }

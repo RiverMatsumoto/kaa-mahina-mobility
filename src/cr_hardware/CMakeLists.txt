@@ -21,6 +21,11 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
+include_directories(
+  include
+  include/cr_hardware
+)
+
 # compile custom ros2 control SystemInterface plugin
 add_library(
   cr_hardware
@@ -41,20 +46,45 @@ add_executable(test_roboclaw
 target_include_directories(test_roboclaw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(test_roboclaw PUBLIC cr_hardware)
 
+## Declare a C++ library
+add_library(bno055 src/bno055.cpp)
+
+## Declare a C++ executable
+## With catkin_make all packages are built within a single CMake context
+## The recommended prefix ensures that target names across packages don't collide
+# add_executable(bno055_node src/bno055_node.cpp)
+## Specify libraries to link a library or executable target against
+# target_link_libraries(bno055_node
+#    bno055
+#    ${catkin_LIBRARIES}
+# )
+
+set_property(TARGET bno055 PROPERTY LINKER_LANGUAGE CXX)
+add_executable(bno055_calibrate src/bno055_calibrate.cpp)
+target_include_directories(bno055_calibrate PUBLIC 
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(bno055_calibrate
+    bno055
+   ${catkin_LIBRARIES}
+)
+
+
 pluginlib_export_plugin_description_file(hardware_interface cr_hardware.xml)
 
+# libraries and executables
 install(TARGETS
   cr_hardware
+  test_roboclaw
+  bno055_calibrate
   DESTINATION lib/${PROJECT_NAME}
 )
+# includes
 install(
   DIRECTORY include/
   DESTINATION include/cr_hardware
 )
-# script to test roboclaw connections and commands
-install(TARGETS test_roboclaw
-  DESTINATION lib/${PROJECT_NAME}
-)
+# launch and urdf files
 install(
   DIRECTORY description/ros2_control description/urdf config launch
   DESTINATION share/cr_hardware

@@ -7,10 +7,6 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/node.hpp"
-/*
-ros2_control architecture notes:
-- on_init: store the HardwareInfo for later use
-*/
 
 hardware_interface::CallbackReturn DifferentialDrive::on_init(
     const hardware_interface::HardwareInfo &info)
@@ -28,6 +24,10 @@ hardware_interface::CallbackReturn DifferentialDrive::on_init(
     RCLCPP_INFO(
         rclcpp::get_logger("DifferentialDrive"),
         "DEBUG MODE: %s", debug_ ? "True" : "False");
+    std::string serial_port_ = info_.hardware_parameters["serial_port"];
+    RCLCPP_INFO(
+        rclcpp::get_logger("DifferentialDrive"),
+        "Serial port: %s", serial_port_.c_str());
 
     // verify and error check joint types and interfaces
     for (const hardware_interface::ComponentInfo &joint : info_.joints)

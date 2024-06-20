@@ -1,0 +1,1 @@
+colcon build --event-handlers console_direct+ --symlink-install
