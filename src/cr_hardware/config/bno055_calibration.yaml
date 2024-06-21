@@ -1,0 +1,18 @@
+bno055_calibration:
+  ros__parameters:
+    device: "/dev/i2c-7"
+    address: 0x28
+    accel_offset:
+      x: -28
+      y: -46
+      z: -29
+      r: 1000
+    gyro_offset:
+      x: 0
+      y: 0
+      z: 2
+    mag_offset:
+      x: 106
+      y: 164
+      z: 2
+      r: 613

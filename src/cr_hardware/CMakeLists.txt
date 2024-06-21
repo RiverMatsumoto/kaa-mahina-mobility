@@ -64,11 +64,14 @@ add_executable(bno055_calibrate src/bno055_calibrate.cpp)
 target_include_directories(bno055_calibrate PUBLIC 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_link_libraries(bno055_calibrate
-    bno055
-   ${catkin_LIBRARIES}
-)
+target_link_libraries(bno055_calibrate bno055)
 
+add_executable(bno055_node src/bno055_node.cpp)
+target_include_directories(bno055_node PUBLIC 
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(bno055_node rclcpp std_msgs)
+target_link_libraries(bno055_node bno055)
 
 pluginlib_export_plugin_description_file(hardware_interface cr_hardware.xml)
 
@@ -77,6 +80,7 @@ install(TARGETS
   cr_hardware
   test_roboclaw
   bno055_calibrate
+  bno055_node
   DESTINATION lib/${PROJECT_NAME}
 )
 # includes
