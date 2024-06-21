@@ -4,9 +4,9 @@
 
 int main(int argc, char** argv)
 {
-    int bno055_addr = 0x29;
+    int bno055_addr = 0x28;
     int rate = 100;
-    const char bno055_i2c_dev[] = "/dev/i2c-1";
+    const char bno055_i2c_dev[] = "/dev/i2c-7";
 
     BNO055_I2C_init(bno055_i2c_dev, bno055_addr);
 
@@ -17,13 +17,18 @@ int main(int argc, char** argv)
     bno055.delay_msec = BNO055_delay_msec;
     bno055.dev_addr = bno055_addr;
 
-    bno055_init(&bno055);
+    if (bno055_init(&bno055))
+    {
+        std::cout << "Error connecting" << std::endl;
+    }
 
     bno055_set_power_mode(BNO055_POWER_MODE_NORMAL);
     bno055_set_operation_mode(BNO055_OPERATION_MODE_NDOF);
 
     for (;;)
     {
+        u8 system_status = 0;
+        bno055_get_sys_stat_code(&system_status);
         u8 accel_status = 0;
         bno055_get_accel_calib_stat(&accel_status);
         u8 gyro_status = 0;
@@ -38,9 +43,10 @@ int main(int argc, char** argv)
         if (cmd == "check")
         {
             std::cout << "Calibration status:" << std::endl <<
-                      "A: " << (int)accel_status << 
-                      " G: " << (int)gyro_status << 
-                      " M: " << (int)mag_status << std::endl;
+                        "System: " << (int)system_status << std::endl <<
+                      "Accel: " << (int)accel_status << 
+                      " Gyro: " << (int)gyro_status << 
+                      " Magnetometer: " << (int)mag_status << std::endl;
         }
         else if (cmd == "save")
         {
