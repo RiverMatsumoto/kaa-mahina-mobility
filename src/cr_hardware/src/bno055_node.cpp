@@ -1,3 +1,4 @@
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -52,7 +53,13 @@ public:
 
         InitializeBNO055();
 
-        this->create_wall_timer(std::chrono::seconds(1), std::bind(&BNO055Node::ReadOrientation, this));
+        RCLCPP_INFO(get_logger(), "Started 1hz imu readout");
+        timer_ = this->create_wall_timer(std::chrono::seconds(1), std::bind(&BNO055Node::ReadOrientation, this));
+    }
+
+    ~BNO055Node()
+    {
+        
     }
 
 private:
@@ -63,12 +70,12 @@ private:
 
     void ReadOrientation()
     {
-        struct bno055_euler_float_t euler;
         bno055_accel_t accel;
         bno055_read_accel_xyz(&accel);
-        RCLCPP_INFO(get_logger(), "Euler: Heading: %f, Roll: %f, Pitch: %f", euler.h, euler.r, euler.p);
+        RCLCPP_INFO(get_logger(), "Euler: Heading: %d, Roll: %d, Pitch: %d", accel.x, accel.y, accel.z);
     }
 
+    rclcpp::TimerBase::SharedPtr timer_;
     std::string device_;
     int address_;
 };
