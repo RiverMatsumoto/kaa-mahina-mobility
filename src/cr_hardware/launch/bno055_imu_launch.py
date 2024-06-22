@@ -6,7 +6,7 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 def generate_launch_description():
-    bno055_calibration_file = PathJoinSubstitution([FindPackageShare('cr_hardware'), 'config', 'bno055_imu.yaml'])
+    bno055_calibration_file = PathJoinSubstitution([FindPackageShare('cr_hardware'), 'config', 'bno055_calibration.yaml'])
 
     bno055_calib_launch_arg = DeclareLaunchArgument(
         'bno055_calibration_file',
