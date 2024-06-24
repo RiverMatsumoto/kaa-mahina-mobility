@@ -1,6 +1,6 @@
 bno055_driver_node:
   ros__parameters:
-    debug: True
+    debug: False
     device: "/dev/i2c-7"
     address: 0x28
     rate: 100

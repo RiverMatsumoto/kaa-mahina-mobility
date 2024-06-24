@@ -74,7 +74,8 @@ public:
         bno055_write_gyro_offset(&gyro_offset);
         bno055_write_mag_offset(&mag_offset);
 
-        RCLCPP_INFO(get_logger(), "Started 1hz imu readout");
+        RCLCPP_INFO(get_logger(), "Finished initialization");
+        RCLCPP_INFO_STREAM(get_logger(), "Started " << rate_hz_ << "hz imu readout");
         timer_ = this->create_wall_timer(std::chrono::milliseconds(10), std::bind(&BNO055Node::ReadOrientation, this));
 
         imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 20);
@@ -148,6 +149,7 @@ private:
         abs_orientation_msg.z = euler.r;
 
         imu_pub_->publish(imu_msg);
+        abs_orientation_pub_->publish(abs_orientation_msg);
 
         if (debug_)
         {
