@@ -13,6 +13,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   rclcpp_lifecycle
   # end ros2 control required 
+  sensor_msgs
+  geometry_msgs
 )
 
 # find dependencies
@@ -70,7 +72,7 @@ add_executable(bno055_driver_node src/bno055_node.cpp)
 target_include_directories(bno055_driver_node PUBLIC 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(bno055_driver_node rclcpp std_msgs)
+ament_target_dependencies(bno055_driver_node rclcpp std_msgs sensor_msgs geometry_msgs)
 target_link_libraries(bno055_driver_node bno055)
 
 pluginlib_export_plugin_description_file(hardware_interface cr_hardware.xml)
