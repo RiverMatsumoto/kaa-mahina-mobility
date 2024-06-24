@@ -53,7 +53,15 @@ public:
                                                                             << "Accel offset x: " << accel_offset.x << std::endl
                                                                             << "Accel offset y: " << accel_offset.y << std::endl
                                                                             << "Accel offset z: " << accel_offset.z << std::endl
-                                                                            << "Accel offset r: " << accel_offset.r);
+                                                                            << "Accel offset r: " << accel_offset.r << std::endl
+                                                                            << "Gyro offset x: " << gyro_offset.x << std::endl
+                                                                            << "Gyro offset y: " << gyro_offset.y << std::endl
+                                                                            << "Gyro offset z: " << gyro_offset.z << std::endl
+                                                                            << "Mag offset x: " << mag_offset.x << std::endl
+                                                                            << "Mag offset y: " << mag_offset.y << std::endl
+                                                                            << "Mag offset z: " << mag_offset.z << std::endl
+                                                                            << "Mag offset r: " << mag_offset.r << std::endl
+                                                                            );
 
         InitializeBNO055();
 
@@ -97,12 +105,18 @@ private:
         }
         RCLCPP_INFO(get_logger(), "Accel (cm/s): X: %d, Y: %d, Z: %d", accel.x, accel.y, accel.z);
 
-        bno055_euler_t euler = {0,0,0};
-        if (bno055_read_euler_hrp(&euler) != BNO055_SUCCESS)
+        // +0 to +360 degrees for heading (0 should be north)
+        // -180 to +180 degrees for pitch
+        // -90 to +90 degrees for roll
+        bno055_euler_float_t euler;
+        if (bno055_convert_float_euler_hpr_deg(&euler) != BNO055_SUCCESS)
         {
             RCLCPP_INFO(get_logger(), "Error reading from imu");
         }
-        RCLCPP_INFO(get_logger(), "Euler (degrees): Heading: %d, Roll: %d, Pitch: %d", euler.h, euler.r, euler.p);
+        // adjust for 0 = north
+        int mag_offset_r;
+        this->get_parameter("mag_offset.r", mag_offset_r);
+        euler.h = euler.h - (mag_offset_r / 16.0f);
     }
 
     rclcpp::TimerBase::SharedPtr timer_;
