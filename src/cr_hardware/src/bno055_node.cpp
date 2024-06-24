@@ -90,21 +90,26 @@ private:
 
     void ReadOrientation()
     {
-        bno055_accel_t accel;
-        accel.x = 0;
-        accel.y = 0;
-        accel.z = 0;
+        bno055_accel_t accel = {0,0,0};
         if (bno055_read_accel_xyz(&accel) != BNO055_SUCCESS)
         {
             RCLCPP_INFO(get_logger(), "Error reading from imu");
         }
         RCLCPP_INFO(get_logger(), "Accel (cm/s): X: %d, Y: %d, Z: %d", accel.x, accel.y, accel.z);
+
+        bno055_euler_t euler = {0,0,0};
+        if (bno055_read_euler_hrp(&euler) != BNO055_SUCCESS)
+        {
+            RCLCPP_INFO(get_logger(), "Error reading from imu");
+        }
+        RCLCPP_INFO(get_logger(), "Euler (degrees): Heading: %d, Roll: %d, Pitch: %d", euler.h, euler.r, euler.p);
     }
 
     rclcpp::TimerBase::SharedPtr timer_;
     std::string device_;
     int address_;
     bno055_t bno055;
+    bool debug_;
 };
 
 int main(int argc, char *argv[])
