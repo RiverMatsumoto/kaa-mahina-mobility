@@ -16,12 +16,13 @@ class ArduinoDriver(Node):
         self.create_timer(1.0, self.try_connect)
     
     def try_connect(self):
-        # check that we went from connection to no connection
+        # check that usb is plugged in so we can try to connect
         arduino_path = self.find_arduino()
         if not self.have_connection and arduino_path != None:
             self.get_logger().info(f'Found arduino at port: {self.device_path}')
             self.device_path = arduino_path
             self.connect()
+        # check that we went from connection to no connection
         self.have_connection = self.arduino.serial_port.is_open
         if not self.have_connection and self.prev_connection:
             self.get_logger().info('Lost connection arduino, will wait for reconnection')
@@ -34,8 +35,9 @@ class ArduinoDriver(Node):
 
     def find_arduino(self):
         devices = serial.tools.list_ports.comports()
-        arduino_vendor_id = 0x2341  # Example Vendor ID (Arduino)
-        arduino_product_id = 0x0043  # Example Product ID (Arduino Uno)
+        # arduino nano
+        arduino_vendor_id = 0x2341
+        arduino_product_id = 0x0043
         for device in devices:
             if device.vid == arduino_vendor_id and device.pid == arduino_product_id:
                 return device.device

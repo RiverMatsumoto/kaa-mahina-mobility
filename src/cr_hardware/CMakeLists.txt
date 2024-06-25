@@ -13,6 +13,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   rclcpp_lifecycle
   # end ros2 control required 
+  rclpy
   sensor_msgs
   geometry_msgs
 )
@@ -93,13 +94,19 @@ install(
 # launch and urdf files
 install(
   DIRECTORY description/ros2_control description/urdf config launch
-  DESTINATION share/cr_hardware
+  DESTINATION share/${PROJECT_NAME}
 )
 install(TARGETS cr_hardware
   EXPORT export_cr_hardware
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
+)
+# python scripts
+install(
+  PROGRAMS 
+    ${PROJECT_NAME}/joy_to_twist_node.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
