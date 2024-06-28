@@ -612,7 +612,7 @@ int roboclaw_main_battery_voltage(struct roboclaw *rc, uint8_t address, float *v
 		return ret; // IO error or retries exceeded
 
 	uint16_t voltage_temp = decode_read_main_battery_voltage(rc->buffer + bytes);
-	*voltage = (float)(voltage_temp / 10.0);
+	*voltage = (float)(voltage_temp / 10.0f);
 
 	return ROBOCLAW_OK;
 }
