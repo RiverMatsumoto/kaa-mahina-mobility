@@ -18,6 +18,11 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   DEPENDENCIES common_interfaces # Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
 )
 
+install(
+  DIRECTORY cr_bag
+  DESTINATION share/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

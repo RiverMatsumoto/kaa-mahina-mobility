@@ -45,7 +45,7 @@ int main(int argc, char const *argv[])
 
     std::cout << "Testing how many commands per second by reading main battery voltage" << std::endl;
     while (high_resolution_clock::now() < end) {
-        if (roboclaw_main_battery_voltage(rc, address, &voltage) != ROBOCLAW_OK)
+        if (roboclaw_encoders(rc, address, &enc_m1, &enc_m2) != ROBOCLAW_OK)
             std::cout << "Error reading data at function call: " << count << std::endl;
         else
             std::cout << "Count: " << count << std::endl;

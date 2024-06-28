@@ -3,7 +3,7 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-#include "geometry_msgs/msg/vector3.hpp"
+#include "geometry_msgs/msg/vector3_stamped.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "bno055_driver.h"
 
@@ -79,7 +79,7 @@ public:
         timer_ = this->create_wall_timer(std::chrono::milliseconds(10), std::bind(&BNO055Node::ReadOrientation, this));
 
         imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 20);
-        abs_orientation_pub_ = this->create_publisher<geometry_msgs::msg::Vector3>("absolute_orientation", 20);
+        abs_orientation_pub_ = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("absolute_orientation", 20);
     }
 
     ~BNO055Node()
@@ -131,7 +131,7 @@ private:
 
         // publish imu data
         sensor_msgs::msg::Imu imu_msg;
-        geometry_msgs::msg::Vector3 abs_orientation_msg;
+        geometry_msgs::msg::Vector3Stamped abs_orientation_msg;
         imu_msg.header.frame_id = "bno055_imu_link";
         imu_msg.header.stamp = now();
         imu_msg.linear_acceleration.x = lin_accel.x;
@@ -144,9 +144,11 @@ private:
         imu_msg.orientation.y = quaternion.y;
         imu_msg.orientation.z = quaternion.z;
         imu_msg.orientation.w = quaternion.w;
-        abs_orientation_msg.x = euler.h;
-        abs_orientation_msg.y = euler.p;
-        abs_orientation_msg.z = euler.r;
+        abs_orientation_msg.header.frame_id = "bno055_imu_link";
+        abs_orientation_msg.header.stamp = now();
+        abs_orientation_msg.vector.x = euler.h;
+        abs_orientation_msg.vector.y = euler.p;
+        abs_orientation_msg.vector.z = euler.r;
 
         imu_pub_->publish(imu_msg);
         abs_orientation_pub_->publish(abs_orientation_msg);
@@ -170,7 +172,7 @@ private:
     // publishers
     // linear acceleration,
     rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
-    rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr abs_orientation_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::Vector3Stamped>::SharedPtr abs_orientation_pub_;
 };
 
 int main(int argc, char *argv[])

@@ -46,7 +46,7 @@ def main(args=None):
     bag_recorder = BagRecorder()
     
     topics_to_record = [
-        
+        "/test"
     ]
 
     bag_recorder.start_recording(topics_to_record)
