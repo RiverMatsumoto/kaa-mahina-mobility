@@ -12,7 +12,7 @@ navsat_transform_node:
     gps_topic: "/gps/fix"
     imu_topic: "/imu"
     odom_topic: "/odometry/filtered"
-    magnetic_declination_radians: 0.0
+    magnetic_declination_radians: 0.0633
 
     # GPS settings
     yaw_offset: 0.0
