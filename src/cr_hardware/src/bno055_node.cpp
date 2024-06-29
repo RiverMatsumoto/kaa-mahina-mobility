@@ -99,7 +99,8 @@ private:
 
         if (bno055_init(&bno055))
         {
-            RCLCPP_INFO(get_logger(), "Error connecting. Will try connecting every second");
+            if (prev_success_)
+                RCLCPP_INFO(get_logger(), "Error connecting. Waiting for reconnection...");
         }
 
         bno055_set_power_mode(BNO055_POWER_MODE_NORMAL);
@@ -118,27 +119,33 @@ private:
         // -180 to +180 degrees for pitch
         // -90 to +90 degrees for roll
         bool success = true;
+        // only print errors if we lost or gained connection, dont spam stdout
         if (bno055_convert_float_linear_accel_xyz_msq(&lin_accel) != BNO055_SUCCESS)
-        {
-            RCLCPP_ERROR(get_logger(), "Error reading linear acceleration data from imu");
             success = false;
-        }
         if (bno055_convert_float_gyro_xyz_rps(&gyro) != BNO055_SUCCESS)
-        {
-            RCLCPP_ERROR(get_logger(), "Error reading gyro data from imu");
             success = false;
-        }
         bno055_convert_double_quaternion_wxyz(&quaternion); // no error code for some reason
         if (bno055_convert_float_euler_hpr_deg(&euler) != BNO055_SUCCESS)
-        {
-            RCLCPP_ERROR(get_logger(), "Error reading euler absolute orientation from imu");
             success = false;
+        // lost connection
+        if (prev_success_ && !success)
+        {
+            RCLCPP_ERROR(get_logger(), "Lost connection to bno056 imu");
         }
+        // gained connection
+        if (!prev_success_ && success)
+        {
+            RCLCPP_ERROR(get_logger(), "Gained connection to bno055 imu");
+        }
+        // reinitialize if failure
         if (!success)
         {
             InitializeBNO055();
+            prev_success_ = success;
             return;
         }
+        else
+            prev_success_ = success;
 
         // adjust for 0 = north
         int mag_offset_r;
@@ -184,6 +191,7 @@ private:
     bno055_t bno055;
     bool debug_;
     int rate_hz_;
+    bool prev_success_ = true;
 
     // publishers
     // linear acceleration,
