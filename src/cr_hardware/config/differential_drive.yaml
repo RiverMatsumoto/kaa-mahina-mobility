@@ -2,6 +2,7 @@
 differential_drive_params:
   ros__parameters:
     serial_port: "/dev/ttyUSB0"
+    baud_rate: 115200
   
 controller_manager:
   ros__parameters:

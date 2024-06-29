@@ -43,7 +43,8 @@ enum
 	ROBOCLAW_CRC16_BYTES = 2,
 	ROBOCLAW_READ_MAIN_BATTERY_REPLY_BYTES = 4,
 	ROBOCLAW_READ_ENCODERS_REPLY_BYTES = 10,
-	ROBOCLAW_READ_SPEED_ERROR_REPLY_BYTES = 10
+	ROBOCLAW_READ_SPEED_ERROR_REPLY_BYTES = 10,
+	ROBOCLAW_READ_CURRENTS_REPLY_BYTES = 6
 };
 
 enum
@@ -319,6 +320,15 @@ static int encode_read_speed_error_m1m2(uint8_t *buffer, uint8_t address, uint16
 	return bytes;
 }
 
+static int encode_read_currents(uint8_t *buffer, uint8_t address, uint16_t *cmd_crc16)
+{
+	uint8_t bytes = 0;
+	buffer[bytes++] = address;
+	buffer[bytes++] = GETCURRENTS;
+	*cmd_crc16 = calculate_crc16(buffer, bytes);
+	return bytes;
+}
+
 static int16_t decode_read_main_battery_voltage(uint8_t *buffer)
 {
 	return decode_uint16(buffer);
@@ -334,6 +344,12 @@ static void decode_read_speed_error_m1m2(uint8_t *buffer, int32_t *enc1, int32_t
 {
 	*enc1 = decode_uint32_t(buffer);
 	*enc2 = decode_uint32_t(buffer + sizeof(*enc1));
+}
+
+static void decode_read_currents(uint8_t *buffer, float *current1, float *current2)
+{
+	*current1 = decode_uint16(buffer) / 100.0f;
+	*current2 = decode_uint16(buffer + sizeof(*current1)) / 100.0f;
 }
 
 /* tty communication helper functions */
@@ -661,4 +677,15 @@ int roboclaw_speed_error_m1m2(struct roboclaw *rc, uint8_t address, int32_t *enc
 
 int roboclaw_currents(struct roboclaw *rc, uint8_t address, float *current_m1, float *current_m2)
 {
+	int bytes, ret;
+	uint16_t sent_crc16;
+
+	bytes = encode_read_currents(rc->buffer, address, &sent_crc16);
+
+	if ((ret = send_cmd_wait_answer(rc, bytes, ROBOCLAW_READ_CURRENTS_REPLY_BYTES, sent_crc16)) < 0)
+		return ret; // IO error or retries exceeded
+
+	decode_read_currents(rc->buffer + bytes, current_m1, current_m2);
+
+	return ROBOCLAW_OK;
 }

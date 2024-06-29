@@ -28,10 +28,14 @@ hardware_interface::CallbackReturn DifferentialDrive::on_init(
     RCLCPP_INFO(
         rclcpp::get_logger("DifferentialDrive"),
         "DEBUG MODE: %s", debug_ ? "True" : "False");
-    std::string serial_port_ = info_.hardware_parameters["serial_port"];
+    serial_port_ = info_.hardware_parameters["serial_port"];
     RCLCPP_INFO(
         rclcpp::get_logger("DifferentialDrive"),
         "Serial port: %s", serial_port_.c_str());
+    baud_rate_ = std::stoi(info_.hardware_parameters["baud_rate"]);
+    RCLCPP_INFO(
+        rclcpp::get_logger("DifferentialDrive"),
+        "Baud rate: %d", baud_rate_);
 
     // verify and error check joint types and interfaces
     for (const hardware_interface::ComponentInfo &joint : info_.joints)
@@ -81,6 +85,42 @@ hardware_interface::CallbackReturn DifferentialDrive::on_init(
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
+hardware_interface::CallbackReturn DifferentialDrive::on_configure(
+    const rclcpp_lifecycle::State &previous_state
+)
+{
+    RCLCPP_INFO(
+        rclcpp::get_logger("DifferentialDrive"),
+        "Differential Drive has been configured.");
+
+    rc = roboclaw_init(serial_port_.c_str(), baud_rate_);
+    return hardware_interface::CallbackReturn::SUCCESS;
+}
+
+hardware_interface::CallbackReturn DifferentialDrive::on_cleanup(
+    const rclcpp_lifecycle::State &previous_state)
+{
+    // cleanup memory
+    RCLCPP_INFO(
+        rclcpp::get_logger("DifferentialDrive"),
+        "Differential Drive has been cleaned up.");
+    
+    if (rc != nullptr)
+        roboclaw_close(rc);
+    return hardware_interface::CallbackReturn::SUCCESS;
+}
+
+hardware_interface::CallbackReturn DifferentialDrive::on_deactivate(
+    const rclcpp_lifecycle::State &previous_state)
+{
+    // stop motor controllers
+    RCLCPP_INFO(
+        rclcpp::get_logger("DifferentialDrive"),
+        "Differential Drive has been deactivated.");
+    roboclaw_duty_m1m2(rc, 128, 0, 0);
+    return hardware_interface::CallbackReturn::SUCCESS;
+}
+
 std::vector<hardware_interface::StateInterface> DifferentialDrive::export_state_interfaces()
 {
     std::vector<hardware_interface::StateInterface> state_interfaces;
@@ -120,16 +160,6 @@ hardware_interface::CallbackReturn DifferentialDrive::on_activate(
     RCLCPP_INFO(
         rclcpp::get_logger("DifferentialDrive"),
         "Differential Drive has been activated.");
-
-    return hardware_interface::CallbackReturn::SUCCESS;
-}
-
-hardware_interface::CallbackReturn DifferentialDrive::on_deactivate(
-    const rclcpp_lifecycle::State &previous_state)
-{
-    RCLCPP_INFO(
-        rclcpp::get_logger("DifferentialDrive"),
-        "Differential Drive has been deactivated.");
 
     return hardware_interface::CallbackReturn::SUCCESS;
 }

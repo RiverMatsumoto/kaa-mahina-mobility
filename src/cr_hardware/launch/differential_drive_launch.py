@@ -37,8 +37,9 @@ def generate_launch_description():
     diff_drive_yaml_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config', 'differential_drive.yaml'))
     with open(diff_drive_yaml_file  , 'r') as config_file:
         config_params = yaml.safe_load(config_file)
-    serial_port = config_params["differential_drive_params"]["ros__parameters"]["serial_port"]
-    print(serial_port)
+    diff_drive_ros_params = config_params["differential_drive_params"]["ros__parameters"]
+    serial_port = diff_drive_ros_params["serial_port"]
+    baud_rate = diff_drive_ros_params["baud_rate"]
 
     # Initialize Arguments
     gui = LaunchConfiguration("gui")
@@ -53,6 +54,7 @@ def generate_launch_description():
             " use_mock_hardware:=", use_mock_hardware,
             " debug:=", debug_diff_drive,
             " serial_port:=", serial_port,
+            " baud_rate:=", str(baud_rate)
         ]
     )
     

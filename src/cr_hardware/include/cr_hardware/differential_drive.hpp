@@ -21,9 +21,15 @@ class DifferentialDrive : public hardware_interface::SystemInterface
                                     // public std::enable_shared_from_this<DifferentialDrive>
 {
 public:
-    // Implement required methods like configure, start, stop, etc.
+    // populate ros2_control interface info. initialize ros2_control hardware state and command interfaces
     hardware_interface::CallbackReturn on_init(
         const hardware_interface::HardwareInfo &info) override;
+    
+    // allocate and deallocate memory for hardware controls
+    hardware_interface::CallbackReturn on_configure(
+        const rclcpp_lifecycle::State &previous_state) override;
+    hardware_interface::CallbackReturn on_cleanup(
+        const rclcpp_lifecycle::State &previous_state) override;
 
     std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
     std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
@@ -40,6 +46,8 @@ private:
     roboclaw *rc;
     double hw_start_sec_;
     double hw_stop_sec_;
+    std::string serial_port_;
+    int baud_rate_;
 
     std::vector<double> hw_commands_;
     std::vector<double> hw_positions_;
