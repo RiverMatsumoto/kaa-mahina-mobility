@@ -14,7 +14,7 @@
 #include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
 #include <rclcpp_lifecycle/state.hpp>
 #include <vector>
-// roboclaw library
+
 #include "cr_hardware/roboclaw.h"
 
 class DifferentialDrive : public hardware_interface::SystemInterface
@@ -37,6 +37,7 @@ public:
         const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
 private:
+    roboclaw *rc;
     double hw_start_sec_;
     double hw_stop_sec_;
 
