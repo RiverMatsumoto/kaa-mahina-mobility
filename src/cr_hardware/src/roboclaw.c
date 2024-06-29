@@ -9,7 +9,7 @@
  *
  */
 
-#include "cr_hardware/roboclaw.h"
+#include "roboclaw.h"
 
 #include <stdint.h>		//uint8_t, int16_t, int32_t
 #include <unistd.h>		//read, close
@@ -25,14 +25,14 @@
 // default library values
 enum
 {
-	ROBOCLAW_DEFAULT_RETRIES = 2,
+	ROBOCLAW_DEFAULT_RETRIES = 3,
 	ROBOCLAW_DEFAULT_STRICT_0XFF_ACK = 0,
 	ROBOCLAW_B2400_TIMEOUT_MS = 100,
 	ROBOCLAW_B9600_TIMEOUT_MS = 30,
 	ROBOCLAW_B19200_TIMEOUT_MS = 20,
 	ROBOCLAW_B38400_TIMEOUT_MS = 15,
 	ROBOCLAW_B57600_TIMEOUT_MS = 13,
-	ROBOCLAW_B115200_ABOVE_TIMEOUT_MS = 18
+	ROBOCLAW_B115200_ABOVE_TIMEOUT_MS = 12
 };
 
 // ACK bytes, crc sizes, reply sizes
@@ -43,8 +43,7 @@ enum
 	ROBOCLAW_CRC16_BYTES = 2,
 	ROBOCLAW_READ_MAIN_BATTERY_REPLY_BYTES = 4,
 	ROBOCLAW_READ_ENCODERS_REPLY_BYTES = 10,
-	ROBOCLAW_READ_SPEED_ERRORS_REPLY_BYTES = 10,
-	ROBOCLAW_READ_CURRENTS_REPLY_BYTES = 6
+	ROBOCLAW_READ_SPEED_ERROR_REPLY_BYTES = 10
 };
 
 enum
@@ -169,7 +168,7 @@ static uint16_t calculate_crc16(uint8_t *packet, const int bytes);
 static uint16_t decode_crc16(uint8_t *buffer);
 
 // ACKed commands
-static int encode_duty_m1m2(uint8_t *buffer, uint8_t address, float duty1, float duty2);
+static int encode_duty_m1m2(uint8_t *buffer, uint8_t address, int16_t duty1, int16_t duty2);
 static int encode_speed_m1m2(uint8_t *buffer, uint8_t address, int32_t speed1, int32_t speed2);
 static int encode_speed_accel_m1m2(uint8_t *buffer, uint8_t address, int32_t speed1, int32_t speed2, uint32_t accel);
 
@@ -177,7 +176,7 @@ static int encode_speed_accel_m1m2(uint8_t *buffer, uint8_t address, int32_t spe
 static int encode_read_main_battery_voltage(uint8_t *buffer, uint8_t address, uint16_t *cmd_crc16);
 static int encode_read_encoders(uint8_t *buffer, uint8_t address, uint16_t *cmd_crc16);
 
-static float decode_read_main_battery_voltage(uint8_t *buffer);
+static int16_t decode_read_main_battery_voltage(uint8_t *buffer);
 static void decode_read_encoders(uint8_t *buffer, int32_t *enc1, int32_t *enc2);
 
 /* tty communication helper functions */
@@ -250,7 +249,7 @@ static int encode_checksum(uint8_t *buffer, int bytes)
 
 /* encode commands functions */
 
-static int encode_duty_m1m2(uint8_t *buffer, uint8_t address, float duty1, float duty2)
+static int encode_duty_m1m2(uint8_t *buffer, uint8_t address, int16_t duty1, int16_t duty2)
 {
 	uint8_t bytes = 0;
 	buffer[bytes++] = address;
@@ -311,12 +310,27 @@ static int encode_read_encoders(uint8_t *buffer, uint8_t address, uint16_t *cmd_
 	return bytes;
 }
 
-static float decode_read_main_battery_voltage(uint8_t *buffer)
+static int encode_read_speed_error_m1m2(uint8_t *buffer, uint8_t address, uint16_t *cmd_crc16)
+{
+	uint8_t bytes = 0;
+	buffer[bytes++] = address;
+	buffer[bytes++] = GETSPEEDERRORS;
+	*cmd_crc16 = calculate_crc16(buffer, bytes);
+	return bytes;
+}
+
+static int16_t decode_read_main_battery_voltage(uint8_t *buffer)
 {
 	return decode_uint16(buffer);
 }
 
 static void decode_read_encoders(uint8_t *buffer, int32_t *enc1, int32_t *enc2)
+{
+	*enc1 = decode_uint32_t(buffer);
+	*enc2 = decode_uint32_t(buffer + sizeof(*enc1));
+}
+
+static void decode_read_speed_error_m1m2(uint8_t *buffer, int32_t *enc1, int32_t *enc2)
 {
 	*enc1 = decode_uint32_t(buffer);
 	*enc2 = decode_uint32_t(buffer + sizeof(*enc1));
@@ -425,7 +439,6 @@ static int send_cmd_wait_answer(struct roboclaw *rc, int bytes_write, int bytes_
 		// now calculate and check crc16
 		calculated_crc16 = update_crc16(rc->buffer + bytes_write, bytes_read - ROBOCLAW_CRC16_BYTES, cmd_crc16);
 		received_crc16 = decode_crc16(rc->buffer + bytes_write + bytes_read - ROBOCLAW_CRC16_BYTES);
-		// log the buffer up to the bytes_write
 
 		if (calculated_crc16 == received_crc16)
 			return ROBOCLAW_OK;
@@ -575,7 +588,7 @@ int roboclaw_close(struct roboclaw *rc)
 /* ACKed commands, on success roboclaw replies with single byt 0xFF acknowledge  */
 /* User encodes the command, calculates the crc and sends command with crc checksum */
 
-int roboclaw_duty_m1m2(struct roboclaw *rc, uint8_t address, float duty_m1, float duty_m2)
+int roboclaw_duty_m1m2(struct roboclaw *rc, uint8_t address, int16_t duty_m1, int16_t duty_m2)
 {
 	int bytes = encode_duty_m1m2(rc->buffer, address, duty_m1, duty_m2);
 	return send_cmd_wait_answer(rc, bytes, ROBOCLAW_ACK_BYTES, 0);
@@ -601,7 +614,7 @@ int roboclaw_speed_accel_m1m2(struct roboclaw *rc, uint8_t address, int speed_m1
  * compares calculated to received
  */
 
-int roboclaw_main_battery_voltage(struct roboclaw *rc, uint8_t address, float *voltage)
+int roboclaw_main_battery_voltage(struct roboclaw *rc, uint8_t address, int16_t *voltage)
 {
 	int bytes, ret;
 	uint16_t sent_crc16;
@@ -611,8 +624,7 @@ int roboclaw_main_battery_voltage(struct roboclaw *rc, uint8_t address, float *v
 	if ((ret = send_cmd_wait_answer(rc, bytes, ROBOCLAW_READ_MAIN_BATTERY_REPLY_BYTES, sent_crc16)) < 0)
 		return ret; // IO error or retries exceeded
 
-	uint16_t voltage_temp = decode_read_main_battery_voltage(rc->buffer + bytes);
-	*voltage = (float)(voltage_temp / 10.0f);
+	*voltage = decode_read_main_battery_voltage(rc->buffer + bytes);
 
 	return ROBOCLAW_OK;
 }
@@ -632,39 +644,21 @@ int roboclaw_encoders(struct roboclaw *rc, uint8_t address, int32_t *enc_m1, int
 	return ROBOCLAW_OK;
 }
 
-
 int roboclaw_speed_error_m1m2(struct roboclaw *rc, uint8_t address, int32_t *enc_m1, int32_t *enc_m2)
 {
-	int bytes = 0;
-	int ret;
+	int bytes, ret;
 	uint16_t sent_crc16;
 
-	rc->buffer[bytes++] = address;
-	rc->buffer[bytes++] = GETSPEEDERRORS;
+	bytes = encode_read_speed_error_m1m2(rc->buffer, address, &sent_crc16);
 
-	if ((ret = send_cmd_wait_answer(rc, bytes, ROBOCLAW_READ_SPEED_ERRORS_REPLY_BYTES, sent_crc16)) < 0)
+	if ((ret = send_cmd_wait_answer(rc, bytes, ROBOCLAW_READ_SPEED_ERROR_REPLY_BYTES, sent_crc16)) < 0)
 		return ret; // IO error or retries exceeded
 	
-	*enc_m1 = decode_uint32_t(rc->buffer);
-	*enc_m2 = decode_uint32_t(rc->buffer + sizeof(*enc_m1));
+	decode_read_speed_error_m1m2(rc->buffer + bytes, enc_m1, enc_m2);
 
 	return ROBOCLAW_OK;
 }
 
 int roboclaw_currents(struct roboclaw *rc, uint8_t address, float *current_m1, float *current_m2)
 {
-	int bytes = 0;
-	int ret;
-	uint16_t sent_crc16;
-	
-	rc->buffer[bytes++] = address;
-	rc->buffer[bytes++] = GETCURRENTS;
-
-	if ((ret = send_cmd_wait_answer(rc, bytes, ROBOCLAW_READ_CURRENTS_REPLY_BYTES, sent_crc16)) < 0)
-		return ret; // IO error or retries exceeded
-	
-	*current_m1 = (float)(decode_uint16(rc->buffer) / 10.0f);
-	*current_m2 = (float)(decode_uint16(rc->buffer + sizeof(*current_m1)) / 10.0f);
-
-	return ROBOCLAW_OK;
 }

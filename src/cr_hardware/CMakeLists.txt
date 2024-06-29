@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
-project(cr_hardware LANGUAGES CXX)
+project(cr_hardware LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 17)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wno-unused-parameter -Wno-unused-function)
 endif()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   # start ros2 control required
@@ -29,12 +32,18 @@ include_directories(
   include/cr_hardware
 )
 
+add_library(
+  roboclaw
+  SHARED
+  src/roboclaw.c
+)
+set_target_properties(roboclaw PROPERTIES LINKER_LANGUAGE C)
+
 # compile custom ros2 control SystemInterface plugin
 add_library(
   cr_hardware
   SHARED
   src/differential_drive.cpp
-  src/roboclaw.cpp
 )
 target_compile_features(cr_hardware PUBLIC cxx_std_17)
 target_include_directories(cr_hardware PUBLIC
@@ -42,12 +51,13 @@ target_include_directories(cr_hardware PUBLIC
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(cr_hardware PUBLIC
   ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(cr_hardware PUBLIC roboclaw)
 
 add_executable(test_roboclaw 
-  src/test_roboclaw.cpp 
-  src/roboclaw.cpp)
+  src/test_roboclaw.c
+)
 target_include_directories(test_roboclaw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(test_roboclaw PUBLIC cr_hardware)
+target_link_libraries(test_roboclaw PUBLIC cr_hardware roboclaw)
 
 ## Declare a C++ library
 add_library(bno055 src/bno055.cpp)
@@ -81,6 +91,7 @@ pluginlib_export_plugin_description_file(hardware_interface cr_hardware.xml)
 # libraries and executables
 install(TARGETS
   cr_hardware
+  roboclaw
   test_roboclaw
   bno055_calibrate
   bno055_driver_node
@@ -96,7 +107,7 @@ install(
   DIRECTORY description/ros2_control description/urdf config launch
   DESTINATION share/${PROJECT_NAME}
 )
-install(TARGETS cr_hardware
+install(TARGETS cr_hardware roboclaw
   EXPORT export_cr_hardware
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
