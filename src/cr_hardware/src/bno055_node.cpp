@@ -116,14 +116,29 @@ private:
         // +0 to +360 degrees for heading (0 should be north)
         // -180 to +180 degrees for pitch
         // -90 to +90 degrees for roll
+        bool success = true;
         if (bno055_convert_float_linear_accel_xyz_msq(&lin_accel) != BNO055_SUCCESS)
+        {
             RCLCPP_ERROR(get_logger(), "Error reading linear acceleration data from imu");
+            success = false;
+        }
         if (bno055_convert_float_gyro_xyz_rps(&gyro) != BNO055_SUCCESS)
+        {
             RCLCPP_ERROR(get_logger(), "Error reading gyro data from imu");
+            success = false;
+        }
         bno055_convert_double_quaternion_wxyz(&quaternion); // no error code for some reason
         if (bno055_convert_float_euler_hpr_deg(&euler) != BNO055_SUCCESS)
+        {
             RCLCPP_ERROR(get_logger(), "Error reading euler absolute orientation from imu");
-        
+            success = false;
+        }
+        if (!success)
+        {
+            InitializeBNO055();
+            return;
+        }
+
         // adjust for 0 = north
         int mag_offset_r;
         this->get_parameter("mag_offset.r", mag_offset_r);
