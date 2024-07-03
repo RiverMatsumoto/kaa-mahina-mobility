@@ -23,11 +23,17 @@ class BagRecorder(Node):
         self.process = None
 
     def start_recording(self, request, response):
-        output_bag = request.output_bag
-        topics = request.topics
-        command = ['ros2', 'bag', 'record', '-o', output_bag] + topics
-        self.process = subprocess.Popen(command)
-        self.get_logger().info('Started recording')
+        if self.process is not None:
+            self.get_logger().warn('Recording already in progress')
+            response.success = False
+        else:
+            output_bag = request.output_bag
+            topics = request.topics
+            command = ['ros2', 'bag', 'record', '-o', output_bag] + topics
+            self.process = subprocess.Popen(command)
+            self.get_logger().info('Started recording')
+            response.success = True
+        return response
 
     def stop_recording_callback(self, request, response):
         if self.process:

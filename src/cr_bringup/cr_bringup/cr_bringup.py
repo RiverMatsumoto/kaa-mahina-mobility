@@ -16,9 +16,7 @@ class BringupNode(Node):
         curses.curs_set(0)
         self.screen.nodelay(True)
         self.last_key = 'None'
-
         self.launch_processes: dict[str, subprocess.Popen] = dict()
-
         self.status_bar = ''
 
         # Start curses display thread
@@ -49,9 +47,10 @@ class BringupNode(Node):
                             key_to_kill: int,
                             launch_name: str,
                             row: int,
-                            launch_cmd: list[str]):
+                            launch_cmd: list[str],
+                            expected_node: str):
         self.screen.addstr(row, 0, f"Press {chr(key_to_launch)} to launch {launch_name}")
-        self.screen.addstr(row, 60, f"Status: {'Alive' if launch_name in self.alive_nodes else 'Dead'}")
+        self.screen.addstr(row, 60, f"Status: {'Alive' if expected_node in self.alive_nodes else 'Dead'}")
         if key_pressed == key_to_launch:
             if launch_name not in self.launch_processes.keys(): 
                 self.launch_processes[launch_name] = subprocess.Popen(launch_cmd, 
@@ -93,7 +92,8 @@ class BringupNode(Node):
                 key_to_kill=ord('!'),
                 launch_name="differential_drive.launch.py",
                 row=3,
-                launch_cmd=["ros2", "launch", "cr_hardware", "differential_drive.launch.py"]
+                launch_cmd=["ros2", "launch", "cr_hardware", "differential_drive.launch.py"],
+                expected_node="/differential_drive_controller"
             )
             self.display_launch_scheme(
                 key_pressed=key,
@@ -101,7 +101,8 @@ class BringupNode(Node):
                 key_to_kill=ord('@'),
                 launch_name="bno055.launch.py",
                 row=4,
-                launch_cmd=["ros2", "launch", "cr_hardware", "bno055.launch.py"]
+                launch_cmd=["ros2", "launch", "cr_hardware", "bno055.launch.py"],
+                expected_node="/bno055_driver_node"
             )
                     
             # status bar
