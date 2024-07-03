@@ -74,7 +74,7 @@ def generate_launch_description():
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_controllers, {"debug_diff_drive": debug_diff_drive}],
+        parameters=[robot_controllers],
         output="both",
         remappings=[
             ("~/robot_description", "/robot_description"),
@@ -107,7 +107,7 @@ def generate_launch_description():
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["diffbot_base_controller", "--controller-manager", "/controller_manager"],
+        arguments=["differential_drive_controller", "--controller-manager", "/controller_manager"],
         output='screen'
     )
 

@@ -1,6 +1,7 @@
 
 differential_drive_params:
   ros__parameters:
+    debug_diff_drive: true
     serial_port: "/dev/ttyUSB0"
     baud_rate: 115200
   
@@ -11,11 +12,11 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    diffbot_base_controller:
+    differential_drive_controller:
       type: diff_drive_controller/DiffDriveController
 
-diffbot_base_controller:
-  ros__parametersdebug_diff_drive:
+differential_drive_controller:
+  ros__parameters:
     left_wheel_names: ["left_wheel_joint"]
     right_wheel_names: ["right_wheel_joint"]
 

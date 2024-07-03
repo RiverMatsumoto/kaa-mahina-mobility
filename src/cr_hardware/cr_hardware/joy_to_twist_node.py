@@ -21,11 +21,6 @@ class JoyToTwistNode(Node):
         self.prev_buttons = tuple([0] * 20)
         self.prev_dpad = tuple([0] * 10)
 
-        # Initialize curses
-        self.stdscr = stdscr
-        curses.curs_set(0)
-        self.stdscr.nodelay(1)
-
         self.subscription = self.create_subscription(
             Joy,
             'joy',
@@ -39,6 +34,10 @@ class JoyToTwistNode(Node):
         self.linear_scale = self.get_parameter('linear_scale').value
         self.angular_scale = self.get_parameter('angular_scale').value
 
+        # Initialize curses
+        self.stdscr = stdscr
+        curses.curs_set(0)
+        self.stdscr.nodelay(True)
         # Start curses display thread
         self.curses_thread = threading.Thread(target=self.display, daemon=True)
         self.curses_thread.start()
@@ -84,6 +83,9 @@ class JoyToTwistNode(Node):
     # do not call this function, should run in thread
     def display(self):
         while True:
+            key = self.stdscr.getch()
+            if key == ord('q'):
+                rclpy.shutdown()
             self.stdscr.clear()
             self.stdscr.addstr(0, 0, "Press Ctrl+C to exit")
             self.stdscr.addstr(2, 0, f"Linear speed: {self.linear_scale:.2f} m/s")

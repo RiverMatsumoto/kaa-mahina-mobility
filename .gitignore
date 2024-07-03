@@ -7,3 +7,4 @@ log
 
 src/ros2_control_demos
 src/basic_mobile_robot
+src/ROS2QtGui
