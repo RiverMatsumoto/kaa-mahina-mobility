@@ -1,3 +1,4 @@
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler, ExecuteProcess
 from launch.conditions import IfCondition
@@ -34,7 +35,9 @@ def generate_launch_description():
         )
     )
 
-    diff_drive_yaml_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config', 'differential_drive.yaml'))
+    diff_drive_yaml_file = os.path.abspath(os.path.join(get_package_share_directory('cr_hardware'), 
+                                                        'config', 
+                                                        'differential_drive.yaml'))
     with open(diff_drive_yaml_file  , 'r') as config_file:
         config_params = yaml.safe_load(config_file)
     diff_drive_ros_params = config_params["differential_drive_params"]["ros__parameters"]
