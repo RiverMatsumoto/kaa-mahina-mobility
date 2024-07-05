@@ -117,6 +117,7 @@ install(TARGETS cr_hardware roboclaw
 install(
   PROGRAMS 
     ${PROJECT_NAME}/joy_to_twist_node.py
+    ${PROJECT_NAME}/camera.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
