@@ -1,3 +1,6 @@
 [submodule "src/ros2_v4l2_camera"]
 	path = src/ros2_v4l2_camera
 	url = https://gitlab.com/boldhearts/ros2_v4l2_camera.git
+[submodule "src/ros2-camera-node"]
+	path = src/ros2-camera-node
+	url = https://github.com/antmicro/ros2-camera-node.git
