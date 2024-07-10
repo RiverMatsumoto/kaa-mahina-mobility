@@ -43,7 +43,7 @@ public:
         const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
 private:
-    roboclaw *rc;
+    roboclaw *rc_;
     double hw_start_sec_;
     double hw_stop_sec_;
     std::string serial_port_;
