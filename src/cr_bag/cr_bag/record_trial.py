@@ -1,10 +1,11 @@
 #!/usr/bin/env python3 
+import ros2bag_convert.main
 import rclpy
-import csv
 import signal
 from rclpy.node import Node
 from cr_bag.srv import StartBag, StopBag
 import subprocess
+import ros2bag_convert
 
 """
     bag files need:
@@ -22,7 +23,7 @@ class BagRecorder(Node):
         self.process = None
     
         self.topics_to_record = [
-            "/chatter"
+            "/vicon/test/test",
         ]
 
     def start_recording_callback(self, request, response):
@@ -46,7 +47,7 @@ class BagRecorder(Node):
             self.get_logger().info('Stopped recording')
             response.success = True
         else:
-            self.get_logger().warn('No recording process found')
+            self.get_logger().warn("Recording hasn't started")
             response.success = False
         return response
 
