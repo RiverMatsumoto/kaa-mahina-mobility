@@ -2,8 +2,6 @@
 #include <chrono>
 #include <memory>
 #include <vector>
-#include <math.h>
-#include <string>
 
 // ros2
 #include "hardware_interface/lexical_casts.hpp"
@@ -23,8 +21,6 @@ hardware_interface::CallbackReturn DifferentialDrive::on_init(
         return hardware_interface::CallbackReturn::ERROR;
     }
 
-    node_handle_ = std::make_shared<rclcpp::Node>("parameter_reader_node");
-    
     hw_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
     hw_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
     hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
@@ -40,11 +36,6 @@ hardware_interface::CallbackReturn DifferentialDrive::on_init(
     RCLCPP_INFO(
         rclcpp::get_logger("DifferentialDrive"),
         "Baud rate: %d", baud_rate_);
-    wheel_radius_ = std::stod(info_.hardware_parameters["wheel_radius"]);
-    RCLCPP_INFO(
-        rclcpp::get_logger("DifferentialDrive"),
-        "Wheel Radius: %f", wheel_radius_);
-    circumference_ = 2 * wheel_radius_ * M_PI;
 
     // verify and error check joint types and interfaces
     for (const hardware_interface::ComponentInfo &joint : info_.joints)
@@ -98,21 +89,12 @@ hardware_interface::CallbackReturn DifferentialDrive::on_configure(
     const rclcpp_lifecycle::State &previous_state
 )
 {
-    rc_ = roboclaw_init(serial_port_.c_str(), baud_rate_);
-    if (rc_ == NULL)
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to configure Roboclaw.");
-        return hardware_interface::CallbackReturn::ERROR;
-    }
-    else
-    {
-        RCLCPP_INFO(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Differential Drive has been configured.");
-        return hardware_interface::CallbackReturn::SUCCESS;
-    }
+    RCLCPP_INFO(
+        rclcpp::get_logger("DifferentialDrive"),
+        "Differential Drive has been configured.");
+
+    rc = roboclaw_init(serial_port_.c_str(), baud_rate_);
+    return hardware_interface::CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn DifferentialDrive::on_cleanup(
@@ -123,8 +105,8 @@ hardware_interface::CallbackReturn DifferentialDrive::on_cleanup(
         rclcpp::get_logger("DifferentialDrive"),
         "Differential Drive has been cleaned up.");
     
-    if (rc_ != nullptr)
-        roboclaw_close(rc_);
+    if (rc != nullptr)
+        roboclaw_close(rc);
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -135,8 +117,7 @@ hardware_interface::CallbackReturn DifferentialDrive::on_deactivate(
     RCLCPP_INFO(
         rclcpp::get_logger("DifferentialDrive"),
         "Differential Drive has been deactivated.");
-    roboclaw_duty_m1m2(rc_, 128, 0, 0);
-    roboclaw_duty_m1m2(rc_, 129, 0, 0);
+    roboclaw_duty_m1m2(rc, 128, 0, 0);
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -191,78 +172,6 @@ hardware_interface::return_type DifferentialDrive::read(
     // hw_positions_[1] = ...
     // hw_velocities_[0] = ...
     // hw_velocities_[1] = ...
-    if (rc_ == nullptr)
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Roboclaw is not initialized.");
-        return hardware_interface::return_type::ERROR;
-    }  
-
-    int32_t enc_fl, enc_bl, enc_fr, enc_br;
-    int speed_fl, speed_bl, speed_fr, speed_br;
-    int res = 0;
-    res = roboclaw_encoders(rc_, 128, &enc_fl, &enc_bl);
-    if (res == ROBOCLAW_OK)
-    {
-        // convert encoders to meters, (2*pi*r) * (revolutions)
-        double revolutions = (double)(enc_fl * revolutions_per_enc_tick_);
-        hw_positions_[0] = revolutions * circumference_;
-    }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
-
-    res = roboclaw_encoders(rc_, 129, &enc_fr, &enc_br);
-    if (res == ROBOCLAW_OK)
-    {
-        // convert encoders to meters, (2*pi*r) * (revolutions)
-        double revolutions = (double)(enc_fr * revolutions_per_enc_tick_);
-        hw_positions_[1] = revolutions * circumference_;
-    }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
-
-    res = 0;
-    res = roboclaw_read_speed_m1(rc_, 128, &speed_fl);
-    if (res == ROBOCLAW_OK)
-    {
-        // convert encoder speed to meters per second
-        double revolutions_per_sec = (double)(speed_fl * revolutions_per_enc_tick_);
-        hw_velocities_[0] = revolutions_per_sec * circumference_;
-    }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
-
-    res = 0;
-    res = roboclaw_read_speed_m1(rc_, 129, &speed_fr);
-    if (res == ROBOCLAW_OK)
-    {
-        // convert encoder speed to meters per second
-        double revolutions_per_sec = (double)(speed_fr * revolutions_per_enc_tick_);
-        hw_velocities_[1] = revolutions_per_sec * circumference_;
-    }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
 
     return hardware_interface::return_type::OK;
 }
@@ -271,34 +180,15 @@ hardware_interface::return_type DifferentialDrive::write(
     const rclcpp::Time &time, const rclcpp::Duration &period)
 {
     // Send the command to the robot hardware
-
-    // ticks per sec [ticks/s] * circumference [m] gives meters per sec [m/s]
-    int speed_left_cmd = hw_commands_[0] * enc_ticks_per_revolution_ * circumference_;
-    int speed_right_cmd = hw_commands_[1] * enc_ticks_per_revolution_ * circumference_;
-    int res;
-    
-    // left wheels, 6600 accel means reach full speed in one second. Max speed is 6600 ticks per second
-    res = roboclaw_speed_accel_m1m2(rc_, 128, speed_left_cmd, speed_left_cmd, 6600);
-    if (res != ROBOCLAW_OK)
-    {
-        return hardware_interface::return_type::ERROR;
-    }
-
-    // right wheels
-    res = 0;
-    res = roboclaw_speed_accel_m1m2(rc_, 129, speed_right_cmd, speed_right_cmd, 6600);
-    if (res != ROBOCLAW_OK)
-    {
-        return hardware_interface::return_type::ERROR;
-    }
-
-    if (hw_commands_[0] != 0 && debug_)
+    // hw_commands_[0] = ...
+    // hw_commands_[1] = ...
+    if (hw_commands_[0] != 0)
     {
         RCLCPP_INFO(
             rclcpp::get_logger("DifferentialDrive"),
             "Sending velocity command to left wheel: %f", hw_commands_[0]);
     }
-    if (hw_commands_[1] != 0 && debug_)
+    if (hw_commands_[1] != 0)
     {
         RCLCPP_INFO(
             rclcpp::get_logger("DifferentialDrive"),

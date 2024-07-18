@@ -43,7 +43,8 @@ public:
         const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
 private:
-    roboclaw *rc;
+    std::shared_ptr<rclcpp::Node> node_handle_;
+    roboclaw *rc_;
     double hw_start_sec_;
     double hw_stop_sec_;
     std::string serial_port_;
@@ -53,6 +54,10 @@ private:
     std::vector<double> hw_positions_;
     std::vector<double> hw_velocities_;
     bool debug_;
+    double wheel_radius_;
+    double circumference_;
+    const double enc_ticks_per_revolution_ = 24750.24;
+    const double revolutions_per_enc_tick_ = 1 / 24750.24;
 };
 
 #endif
