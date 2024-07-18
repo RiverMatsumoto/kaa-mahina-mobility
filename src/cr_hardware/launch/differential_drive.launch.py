@@ -41,15 +41,17 @@ def generate_launch_description():
     with open(diff_drive_yaml_file  , 'r') as config_file:
         config_params = yaml.safe_load(config_file)
     diff_drive_ros_params = config_params["differential_drive_params"]["ros__parameters"]
+    diff_drive_controller_ros_params = config_params["differential_drive_controller"]["ros__parameters"]
     serial_port = diff_drive_ros_params["serial_port"]
     baud_rate = diff_drive_ros_params["baud_rate"]
+    wheel_radius = diff_drive_controller_ros_params["wheel_radius"]
 
-    # Initialize Arguments
+    # Initialize diff drive plugin arguments
     gui = LaunchConfiguration("gui")
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
     debug_diff_drive = LaunchConfiguration("debug_diff_drive")
 
-    # Get URDF via xacro
+    # get urdf with xacro
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
@@ -57,7 +59,8 @@ def generate_launch_description():
             " use_mock_hardware:=", use_mock_hardware,
             " debug:=", debug_diff_drive,
             " serial_port:=", serial_port,
-            " baud_rate:=", str(baud_rate)
+            " baud_rate:=", str(baud_rate),
+            " wheel_radius:=", str(wheel_radius)
         ]
     )
     
