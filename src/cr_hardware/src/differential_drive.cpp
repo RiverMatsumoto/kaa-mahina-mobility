@@ -89,12 +89,21 @@ hardware_interface::CallbackReturn DifferentialDrive::on_configure(
     const rclcpp_lifecycle::State &previous_state
 )
 {
-    RCLCPP_INFO(
-        rclcpp::get_logger("DifferentialDrive"),
-        "Differential Drive has been configured.");
-
     rc_ = roboclaw_init(serial_port_.c_str(), baud_rate_);
-    return hardware_interface::CallbackReturn::SUCCESS;
+    if (rc_ == NULL)
+    {
+        RCLCPP_ERROR(
+            rclcpp::get_logger("DifferentialDrive"),
+            "Failed to configure Roboclaw.");
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+    else
+    {
+        RCLCPP_INFO(
+            rclcpp::get_logger("DifferentialDrive"),
+            "Differential Drive has been configured.");
+        return hardware_interface::CallbackReturn::SUCCESS;
+    }
 }
 
 hardware_interface::CallbackReturn DifferentialDrive::on_cleanup(
@@ -172,6 +181,14 @@ hardware_interface::return_type DifferentialDrive::read(
     // hw_positions_[1] = ...
     // hw_velocities_[0] = ...
     // hw_velocities_[1] = ...
+    if (rc_ == nullptr)
+    {
+        RCLCPP_ERROR(
+            rclcpp::get_logger("DifferentialDrive"),
+            "Roboclaw is not initialized.");
+        return hardware_interface::return_type::ERROR;
+    }  
+
     int32_t enc_m1, enc_m2;
     int res = roboclaw_encoders(rc_, 128, &enc_m1, &enc_m2);
     if (res == 0)
