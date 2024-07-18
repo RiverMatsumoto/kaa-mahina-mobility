@@ -1,61 +1,60 @@
-
+#!/usr/bin/env python3 
+import ros2bag_convert.main
 import rclpy
-import csv
+import signal
 from rclpy.node import Node
-from example_interfaces.srv import SetBool
-from example_interfaces.msg import String
+from cr_bag.srv import StartBag, StopBag
 import subprocess
+import ros2bag_convert
 
 """
     bag files need:
-        trial type 
-        date and time
-        notes.txt to go along with it
-    
-    
+        - motion type
+        - slope angle
+        - date and time
 """
 
 class BagRecorder(Node):
     def __init__(self):
         super().__init__('bag_recorder')
-        self.stop_srv = self.create_service(SetBool, 'stop_recording', self.stop_recording_callback)
-        self.start_srv = self.create_service(SetBool, 'start_recording', self.start_recording_callback)
+        self.get_logger().info('Initialized trial recording services')
+        self.stop_srv = self.create_service(StopBag, 'stop_recording', self.stop_recording_callback)
+        self.start_srv = self.create_service(StartBag, 'start_recording', self.start_recording_callback)
         self.process = None
+    
+        self.topics_to_record = [
+            "/vicon/test/test",
+        ]
 
-    def start_recording(self, request, response):
+    def start_recording_callback(self, request, response):
         if self.process is not None:
             self.get_logger().warn('Recording already in progress')
             response.success = False
         else:
-            output_bag = request.output_bag
-            topics = request.topics
-            command = ['ros2', 'bag', 'record', '-o', output_bag] + topics
+            bag_output = request.bag_output
+            command = ['ros2', 'bag', 'record', '-o', bag_output, *self.topics_to_record]
             self.process = subprocess.Popen(command)
             self.get_logger().info('Started recording')
+            self.get_logger().info(f'Outputting bag file to: {bag_output}')
             response.success = True
         return response
 
     def stop_recording_callback(self, request, response):
         if self.process:
-            self.process.terminate()
+            self.process.send_signal(signal.SIGINT)
             self.process.wait()
             self.process = None
             self.get_logger().info('Stopped recording')
             response.success = True
         else:
-            self.get_logger().warn('No recording process found')
+            self.get_logger().warn("Recording hasn't started")
             response.success = False
         return response
 
 def main(args=None):
     rclpy.init(args=args)
     bag_recorder = BagRecorder()
-    
-    topics_to_record = [
-        "/test"
-    ]
 
-    bag_recorder.start_recording(topics_to_record)
     rclpy.spin(bag_recorder)
 
     bag_recorder.destroy_node()
