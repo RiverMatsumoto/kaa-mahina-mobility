@@ -4,13 +4,18 @@ from launch_ros.actions import Node
 def generate_launch_description():
     return LaunchDescription([
         Node(
-            package='teleop_twist_joy',
-            executable='teleop_node',
-            name='teleop_twist_joy_node',
-            parameters=[{'joy_config': 'xbox'}],  # Ensure this path is correct
+            package='joy',
+            executable='joy_node',
+            name='joy_node',
+            output='screen'
+        ),
+        Node(
+            package='cr_hardware',
+            executable='joy_to_twist_node.py',
+            name='joy_to_twist_node',
             output='screen',
             remappings=[
-                ('/cmd_vel', '/cmd_vel')  # Change this as needed
+                ('/cmd_vel', '/differential_drive_controller/cmd_vel')  # Change this as needed
             ]
         )
     ])
