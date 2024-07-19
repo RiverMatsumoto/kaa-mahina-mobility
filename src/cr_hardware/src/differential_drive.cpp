@@ -202,6 +202,7 @@ hardware_interface::return_type DifferentialDrive::read(
         return hardware_interface::return_type::ERROR;
     }  
 
+
     int32_t enc_fl, enc_bl, enc_fr, enc_br;
     int speed_fl, speed_bl, speed_fr, speed_br;
     int res = 0;

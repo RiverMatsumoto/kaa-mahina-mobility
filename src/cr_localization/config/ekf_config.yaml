@@ -22,6 +22,13 @@ ekf_localization_node:
     imu0_differential: false
     imu0_remove_gravitational_acceleration: true
 
+    odom1: odometry/gps
+    odom1_config: [true,  true,  false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+
     # Frames
     map_frame: 'map'
     odom_frame: 'odom'
