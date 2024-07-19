@@ -1,9 +1,9 @@
 bno055_driver_node:
   ros__parameters:
     debug: False
-    device: "/dev/i2c-7"
+    device: "/dev/i2c-1"
     address: 0x28
-    rate: 100
+    rate: 10
     accel_offset:
       x: -50
       y: -60

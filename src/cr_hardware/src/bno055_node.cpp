@@ -52,6 +52,7 @@ public:
         this->get_parameter("device", device_);
         this->get_parameter("address", address_);
         this->get_parameter("rate_hz", rate_hz_);
+        this->get_parameter("mag_offset.r", mag_offset_r_);
 
         RCLCPP_INFO_STREAM(get_logger(), "Device: " << device_ << " Address: " << address_);
 
@@ -148,9 +149,7 @@ private:
             prev_success_ = success;
 
         // adjust for 0 = north
-        int mag_offset_r;
-        this->get_parameter("mag_offset.r", mag_offset_r);
-        euler.h = euler.h - (mag_offset_r / 16.0f);
+        euler.h = euler.h - (mag_offset_r_ / 16.0f);
 
         // publish imu data
         sensor_msgs::msg::Imu imu_msg;
@@ -192,6 +191,7 @@ private:
     bool debug_;
     int rate_hz_;
     bool prev_success_ = true;
+    int mag_offset_r_;
 
     // publishers
     // linear acceleration,
