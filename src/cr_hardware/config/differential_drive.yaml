@@ -1,7 +1,7 @@
 
 differential_drive_params:
   ros__parameters:
-    debug_diff_drive: true
+    debug_diff_drive: false
     serial_port: "/dev/ttyUSB0"
     baud_rate: 115200
   

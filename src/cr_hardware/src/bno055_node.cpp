@@ -149,7 +149,11 @@ private:
             prev_success_ = success;
 
         // adjust for 0 = north
+        this->get_parameter("mag_offset.r", mag_offset_r_);
         euler.h = euler.h - (mag_offset_r_ / 16.0f);
+        // anything negative wraps around to 360
+        if (euler.h < 0.0f)
+            euler.h += 360;
 
         // publish imu data
         sensor_msgs::msg::Imu imu_msg;
@@ -168,9 +172,9 @@ private:
         imu_msg.orientation.w = quaternion.w;
         abs_orientation_msg.header.frame_id = "bno055_imu_link";
         abs_orientation_msg.header.stamp = now();
-        abs_orientation_msg.vector.x = euler.h;
+        abs_orientation_msg.vector.x = euler.r;
         abs_orientation_msg.vector.y = euler.p;
-        abs_orientation_msg.vector.z = euler.r;
+        abs_orientation_msg.vector.z = euler.h;
 
         imu_pub_->publish(imu_msg);
         abs_orientation_pub_->publish(abs_orientation_msg);

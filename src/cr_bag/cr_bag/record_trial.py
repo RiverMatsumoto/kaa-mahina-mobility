@@ -23,7 +23,10 @@ class BagRecorder(Node):
         self.process = None
     
         self.topics_to_record = [
-            "/vicon/test/test",
+            "/vicon/cuberover/cuberover",
+            "/imu",
+            "/absolute_orientation",
+            "/differential_drive_controller/cmd_vel"
         ]
 
     def start_recording_callback(self, request, response):
