@@ -26,7 +26,8 @@ class BagRecorder(Node):
             "/vicon/cuberover/cuberover",
             "/imu",
             "/absolute_orientation",
-            "/differential_drive_controller/cmd_vel"
+            "/differential_drive_controller/cmd_vel",
+            "/differential_drive_controller/odom"
         ]
 
     def start_recording_callback(self, request, response):
