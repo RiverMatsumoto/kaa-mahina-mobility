@@ -26,7 +26,7 @@ class JoyToTwistNode(Node):
             'joy',
             self.joy_callback,
             10)
-        self.publisher = self.create_publisher(TwistStamped, '/diffbot_base_controller/cmd_vel', 10)
+        self.publisher = self.create_publisher(TwistStamped, '/differential_drive_controller/cmd_vel', 1)
         
         # Parameters for scaling joystick input to twist output (m/s)
         self.declare_parameter('linear_scale', 0.16)
@@ -59,7 +59,7 @@ class JoyToTwistNode(Node):
             else:
                 self.linear_scale = self.linear_scale - 0.01
         if dpad_started['dpad_x']:
-            if dpad['dpad_x'] < -1:
+            if dpad['dpad_x'] < 0:
                 self.angular_scale = self.angular_scale + 0.01
             else:
                 self.angular_scale = self.angular_scale - 0.01

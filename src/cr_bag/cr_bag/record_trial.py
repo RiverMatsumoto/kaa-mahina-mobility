@@ -28,6 +28,7 @@ class BagRecorder(Node):
             "/absolute_orientation",
             "/differential_drive_controller/cmd_vel",
             "/differential_drive_controller/odom"
+            "/joint_states"
         ]
 
     def start_recording_callback(self, request, response):

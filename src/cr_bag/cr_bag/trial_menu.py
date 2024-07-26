@@ -77,7 +77,7 @@ class BagBuilder(QWidget):
     async def start_recording_coroutine(self):
         request = StartBag.Request()
         now = datetime.now()
-        request.bag_output = f"{self.selected_folder}/{self.motion_text_input.text()}_{self.slope_angle_combo.currentText()}deg_{now.strftime('%Y-%m-%d_%H:%M:%S')}.bag"
+        request.bag_output = f"{self.selected_folder}/{self.motion_text_input.text()}_{self.slope_angle_combo.currentText()}deg_{now.strftime('%Y-%m-%d_%H-%M-%S')}.bag"
 
         future = self.start_bag_client.call_async(request)
         rclpy.spin_until_future_complete(self.node_handle, future)  # Wait for the service to respond
