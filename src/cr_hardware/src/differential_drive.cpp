@@ -91,6 +91,7 @@ hardware_interface::CallbackReturn DifferentialDrive::on_init(
             return hardware_interface::CallbackReturn::ERROR;
         }
     }
+    RCLCPP_INFO(rclcpp::get_logger("DifferentialDrive"), "Successfully initialized differential drive.");
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -210,13 +211,13 @@ hardware_interface::return_type DifferentialDrive::read(
         double revolutions = (double)(enc_fl * revolutions_per_enc_tick_);
         hw_positions_[0] = revolutions * circumference_;
     }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
+    // else
+    // {
+    //     RCLCPP_ERROR(
+    //         rclcpp::get_logger("DifferentialDrive"),
+    //         "Failed to read encoder values from Roboclaw.");
+    //     return hardware_interface::return_type::ERROR;
+    // }
 
     res = roboclaw_encoders(rc_, 129, &enc_fr, &enc_br);
     if (res == ROBOCLAW_OK)
@@ -225,13 +226,13 @@ hardware_interface::return_type DifferentialDrive::read(
         double revolutions = (double)(enc_fr * revolutions_per_enc_tick_);
         hw_positions_[1] = revolutions * circumference_;
     }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
+    // else
+    // {
+    //     RCLCPP_ERROR(
+    //         rclcpp::get_logger("DifferentialDrive"),
+    //         "Failed to read encoder values from Roboclaw.");
+    //     return hardware_interface::return_type::ERROR;
+    // }
 
     res = 0;
     res = roboclaw_read_speed_m1(rc_, 128, &speed_fl);
@@ -241,13 +242,13 @@ hardware_interface::return_type DifferentialDrive::read(
         double revolutions_per_sec = (double)(speed_fl * revolutions_per_enc_tick_);
         hw_velocities_[0] = revolutions_per_sec * circumference_;
     }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
+    // else
+    // {
+    //     RCLCPP_ERROR(
+    //         rclcpp::get_logger("DifferentialDrive"),
+    //         "Failed to read encoder values from Roboclaw.");
+    //     return hardware_interface::return_type::ERROR;
+    // }
 
     res = 0;
     res = roboclaw_read_speed_m1(rc_, 129, &speed_fr);
@@ -257,13 +258,13 @@ hardware_interface::return_type DifferentialDrive::read(
         double revolutions_per_sec = (double)(speed_fr * revolutions_per_enc_tick_);
         hw_velocities_[1] = revolutions_per_sec * circumference_;
     }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
+    // else
+    // {
+    //     RCLCPP_ERROR(
+    //         rclcpp::get_logger("DifferentialDrive"),
+    //         "Failed to read encoder values from Roboclaw.");
+    //     return hardware_interface::return_type::ERROR;
+    // }
 
     return hardware_interface::return_type::OK;
 }
