@@ -3,7 +3,7 @@ bno055_driver_node:
     debug: False
     device: "/dev/i2c-7"
     address: 0x28
-    rate: 100
+    rate: 20
     accel_offset:
       x: -50
       y: -60

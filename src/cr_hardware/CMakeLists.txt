@@ -6,10 +6,14 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wno-unused-parameter -Wno-unused-function)
 endif()
 
+# to suppress a warning involving GLOB and symlinks
+# cmake_policy(SET CMP0009 NEW)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
+  ament_cmake_python
   # start ros2 control required
   hardware_interface
   pluginlib
@@ -26,6 +30,7 @@ find_package(ament_cmake REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
+ament_python_install_package(${PROJECT_NAME})
 
 include_directories(
   include
@@ -113,11 +118,13 @@ install(TARGETS cr_hardware roboclaw
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
+
 # python scripts
 install(
   PROGRAMS 
     ${PROJECT_NAME}/joy_to_twist_node.py
     ${PROJECT_NAME}/camera.py
+    ${PROJECT_NAME}/moisture_sensor.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
