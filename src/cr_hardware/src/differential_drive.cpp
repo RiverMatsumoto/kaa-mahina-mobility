@@ -32,6 +32,9 @@ hardware_interface::CallbackReturn DifferentialDrive::on_init(
     RCLCPP_INFO(
         rclcpp::get_logger("DifferentialDrive"),
         "DEBUG MODE: %s", debug_ ? "True" : "False");
+    RCLCPP_INFO(
+        rclcpp::get_logger("DifferentialDrive"),
+        "DEBUG String: %s", info_.hardware_parameters["debug"].c_str());
     serial_port_ = info_.hardware_parameters["serial_port"];
     RCLCPP_INFO(
         rclcpp::get_logger("DifferentialDrive"),
@@ -91,6 +94,7 @@ hardware_interface::CallbackReturn DifferentialDrive::on_init(
             return hardware_interface::CallbackReturn::ERROR;
         }
     }
+    RCLCPP_INFO(rclcpp::get_logger("DifferentialDrive"), "Successfully initialized differential drive.");
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -210,13 +214,13 @@ hardware_interface::return_type DifferentialDrive::read(
         double revolutions = (double)(enc_fl * revolutions_per_enc_tick_);
         hw_positions_[0] = revolutions * circumference_;
     }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
+    // else
+    // {
+    //     RCLCPP_ERROR(
+    //         rclcpp::get_logger("DifferentialDrive"),
+    //         "Failed to read encoder values from Roboclaw.");
+    //     return hardware_interface::return_type::ERROR;
+    // }
 
     res = roboclaw_encoders(rc_, 129, &enc_fr, &enc_br);
     if (res == ROBOCLAW_OK)
@@ -225,13 +229,13 @@ hardware_interface::return_type DifferentialDrive::read(
         double revolutions = (double)(enc_fr * revolutions_per_enc_tick_);
         hw_positions_[1] = revolutions * circumference_;
     }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
+    // else
+    // {
+    //     RCLCPP_ERROR(
+    //         rclcpp::get_logger("DifferentialDrive"),
+    //         "Failed to read encoder values from Roboclaw.");
+    //     return hardware_interface::return_type::ERROR;
+    // }
 
     res = 0;
     res = roboclaw_read_speed_m1(rc_, 128, &speed_fl);
@@ -241,13 +245,13 @@ hardware_interface::return_type DifferentialDrive::read(
         double revolutions_per_sec = (double)(speed_fl * revolutions_per_enc_tick_);
         hw_velocities_[0] = revolutions_per_sec * circumference_;
     }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
+    // else
+    // {
+    //     RCLCPP_ERROR(
+    //         rclcpp::get_logger("DifferentialDrive"),
+    //         "Failed to read encoder values from Roboclaw.");
+    //     return hardware_interface::return_type::ERROR;
+    // }
 
     res = 0;
     res = roboclaw_read_speed_m1(rc_, 129, &speed_fr);
@@ -257,13 +261,13 @@ hardware_interface::return_type DifferentialDrive::read(
         double revolutions_per_sec = (double)(speed_fr * revolutions_per_enc_tick_);
         hw_velocities_[1] = revolutions_per_sec * circumference_;
     }
-    else
-    {
-        RCLCPP_ERROR(
-            rclcpp::get_logger("DifferentialDrive"),
-            "Failed to read encoder values from Roboclaw.");
-        return hardware_interface::return_type::ERROR;
-    }
+    // else
+    // {
+    //     RCLCPP_ERROR(
+    //         rclcpp::get_logger("DifferentialDrive"),
+    //         "Failed to read encoder values from Roboclaw.");
+    //     return hardware_interface::return_type::ERROR;
+    // }
 
     return hardware_interface::return_type::OK;
 }
@@ -273,13 +277,14 @@ hardware_interface::return_type DifferentialDrive::write(
 {
     // Send the command to the robot hardware
 
-    // ticks per sec [ticks/s] * circumference [m] gives meters per sec [m/s]
-    int speed_left_cmd = hw_commands_[0] * enc_ticks_per_revolution_ * circumference_;
-    int speed_right_cmd = hw_commands_[1] * enc_ticks_per_revolution_ * circumference_;
+    // revolutions per sec [rev/s] * circumference [m] gives meters per sec [m/s]
+    double revolutions_per_meter = 1 / circumference_;
+    int speed_left_cmd = hw_commands_[0] * wheel_radius_ * revolutions_per_meter * enc_ticks_per_revolution_;
+    int speed_right_cmd = hw_commands_[1] * wheel_radius_ * revolutions_per_meter * enc_ticks_per_revolution_;
     int res;
     
     // left wheels, 6600 accel means reach full speed in one second. Max speed is 6600 ticks per second
-    res = roboclaw_speed_accel_m1m2(rc_, 128, speed_left_cmd, speed_left_cmd, 6600);
+    res = roboclaw_speed_accel_m1m2(rc_, 128, speed_left_cmd, speed_left_cmd, 6600 * 2);
     if (res != ROBOCLAW_OK)
     {
         return hardware_interface::return_type::ERROR;
@@ -287,7 +292,7 @@ hardware_interface::return_type DifferentialDrive::write(
 
     // right wheels
     res = 0;
-    res = roboclaw_speed_accel_m1m2(rc_, 129, speed_right_cmd, speed_right_cmd, 6600);
+    res = roboclaw_speed_accel_m1m2(rc_, 129, speed_right_cmd, speed_right_cmd, 6600 * 2);
     if (res != ROBOCLAW_OK)
     {
         return hardware_interface::return_type::ERROR;

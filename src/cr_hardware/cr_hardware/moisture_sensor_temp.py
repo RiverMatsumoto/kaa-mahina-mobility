@@ -1,11 +1,11 @@
-
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from .submodules.serial_handler import SerialHandler
+from std_msgs.msg import Float32
+from submodules.serial_handler import SerialHandler
 import serial.tools.list_ports
 
 class ArduinoDriver(Node):
-
     def __init__(self):
         super().__init__('arduino_driver')
         self.device_path = None
@@ -14,6 +14,16 @@ class ArduinoDriver(Node):
         self.have_connection = False
         self.arduino = None
         self.create_timer(1.0, self.try_connect)
+        self.moisture_percent_pub = self.create_publisher(Float32, "/moisture_percent", 10)
+
+    def take_measurement(self, request, response):
+        self.get_logger().info('Taking measurement from soil')
+        
+        # ask for a measurement from arduino
+
+        self.get_logger().info(f'Returning: {float_value}')
+        
+        return response  # Return the response object (even though it's empty)
     
     def try_connect(self):
         # check that usb is plugged in so we can try to connect

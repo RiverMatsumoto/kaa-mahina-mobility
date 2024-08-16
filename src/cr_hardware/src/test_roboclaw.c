@@ -109,6 +109,8 @@ int main(int argc, char **argv)
     do
     {
         int res = roboclaw_main_battery_voltage(rc, address, &voltage);
+        if (res != ROBOCLAW_OK)
+            printf("Failed main battery read at: %d", count);
         count++;
         end = time(NULL);
     } while (difftime(end, start) < seconds);
