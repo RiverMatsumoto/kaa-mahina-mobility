@@ -7,7 +7,7 @@ def generate_launch_description():
             package='v4l2_camera',
             executable='v4l2_camera_node',
             name='v4l2_camera_node_cam1',
-            namespace='camera1',
+            namespace='rpi1',
             parameters=[{
                 'video_device': '/dev/video0',
                 'pixel_format': 'YUYV',
