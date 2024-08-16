@@ -1,11 +1,14 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
+// roboclaw hardware control
+#include "cr_hardware/roboclaw.h"
+
 class LoweringMechanism : public rclcpp::Node
 {
 public:
     PositionController()
-    : Node("position_controller")
+    : Node("lowering_mechanism")
     {
         // Create a service that will trigger the movement
         service_ = this->create_service<std_srvs::srv::SetBool>(
@@ -15,6 +18,13 @@ public:
     }
 
 private:
+    // need init function
+    void init_roboclaw()
+    {
+        roboclaw_init(tty_device_, baud_rate_);
+        
+    }
+
     void move_device_callback(const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
                               std::shared_ptr<std_srvs::srv::SetBool::Response> response)
     {
@@ -70,6 +80,9 @@ private:
     }
 
     rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr service_;
+    const char *tty_device_ = "/dev/ttyUSB0";
+    const int address_ = 130;
+    const int baud_rate_ = 115200;
 };
 
 int main(int argc, char *argv[])
