@@ -27,7 +27,9 @@ class BagRecorder(Node):
             "/imu",
             "/absolute_orientation",
             "/differential_drive_controller/cmd_vel",
-            "/joint_states"
+            "/joint_states",
+            "/rpi1/image_raw/compressed",
+            "/rpi2/image_raw/compressed"
         ]
 
     def start_recording_callback(self, request, response):
