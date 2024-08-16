@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     int16_t voltage;
     float voltage_float;
     int duty_cycle;
-    char *device = "/dev/ttyACM0";
+    char *device = "/dev/ttyUSB0";
 
     // device
     if (argc == 1)

@@ -7,12 +7,12 @@
 class LoweringMechanism : public rclcpp::Node
 {
 public:
-    PositionController()
+    LoweringMechanism()
     : Node("lowering_mechanism")
     {
         // Create a service that will trigger the movement
         service_ = this->create_service<std_srvs::srv::SetBool>(
-            "move_device", std::bind(&PositionController::move_device_callback, this, std::placeholders::_1, std::placeholders::_2));
+            "move_device", std::bind(&LoweringMechanism::move_device_callback, this, std::placeholders::_1, std::placeholders::_2));
         
         RCLCPP_INFO(this->get_logger(), "Position Controller Node has been started.");
     }
@@ -21,8 +21,12 @@ private:
     // need init function
     void init_roboclaw()
     {
-        roboclaw_init(tty_device_, baud_rate_);
-        
+        rc_ = roboclaw_init(tty_device_, baud_rate_);
+        if (rc_ == nullptr)
+        {
+            RCLCPP_ERROR(this->get_logger(), "Failed to initialize Roboclaw. Check for power and communication. Shutting down");
+            rclcpp::shutdown();
+        }
     }
 
     void move_device_callback(const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
@@ -47,34 +51,38 @@ private:
 
     bool move_up()
     {
-        // Implement the logic to move the device up
-        // Return true if the operation is successful, false otherwise
         try
         {
             RCLCPP_INFO(this->get_logger(), "Moving up...");
-            // Simulate hardware interaction here
-            return true;  // Assume success
+            if (roboclaw_move_to_position_m1(rc_, address_, 0) != ROBOCLAW_OK)
+            {
+                RCLCPP_ERROR(this->get_logger(), "Failed to move up");
+                return false;
+            }
+            return true;
         }
         catch (const std::exception &e)
         {
-            RCLCPP_ERROR(this->get_logger(), "Failed to move up: %s", e.what());
+            RCLCPP_ERROR(this->get_logger(), "Failed to move up, likely lost connection with roboclaw: %s", e.what());
             return false;
         }
     }
 
     bool move_down()
     {
-        // Implement the logic to move the device down
-        // Return true if the operation is successful, false otherwise
         try
         {
             RCLCPP_INFO(this->get_logger(), "Moving down...");
-            // Simulate hardware interaction here
+            if (roboclaw_move_to_position_m1(rc_, address_, 1000) != ROBOCLAW_OK)
+            {
+                RCLCPP_ERROR(this->get_logger(), "Failed to move up");
+                return false;
+            }
             return true;  // Assume success
         }
         catch (const std::exception &e)
         {
-            RCLCPP_ERROR(this->get_logger(), "Failed to move down: %s", e.what());
+            RCLCPP_ERROR(this->get_logger(), "Failed to move down, likely lost connection with roboclaw: %s", e.what());
             return false;
         }
     }
@@ -83,6 +91,7 @@ private:
     const char *tty_device_ = "/dev/ttyUSB0";
     const int address_ = 130;
     const int baud_rate_ = 115200;
+    struct roboclaw *rc_;
 };
 
 int main(int argc, char *argv[])

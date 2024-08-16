@@ -242,6 +242,8 @@ enum
     SETCONFIG = 98,
     GETCONFIG = 99,
     GETSPEEDERRORS = 111,
+    M1POSITION = 119,
+    M2POSITION = 120,
     SETM1MAXCURRENT = 133,
     SETM2MAXCURRENT = 134,
     GETM1MAXCURRENT = 135,
@@ -424,6 +426,16 @@ static int encode_read_speed_error_m1m2(uint8_t *buffer, uint8_t address, uint16
     uint8_t bytes = 0;
     buffer[bytes++] = address;
     buffer[bytes++] = GETSPEEDERRORS;
+    *cmd_crc16 = calculate_crc16(buffer, bytes);
+    return bytes;
+}
+
+static int encode_move_to_position_m1(uint8_t *buffer, uint8_t address, uint16_t *cmd_crc16, int32_t pos_m1)
+{
+    uint8_t bytes = 0;
+    buffer[bytes++] = address;
+    encode_uint32(buffer, bytes, pos_m1);
+    buffer[bytes++] = 0; // buffer
     *cmd_crc16 = calculate_crc16(buffer, bytes);
     return bytes;
 }
@@ -819,6 +831,19 @@ int roboclaw_speed_error_m1m2(struct roboclaw *rc, uint8_t address, int32_t *enc
         return ret; // IO error or retries exceeded
     
     decode_read_speed_error_m1m2(rc->buffer + bytes, enc_m1, enc_m2);
+
+    return ROBOCLAW_OK;
+}
+
+int roboclaw_move_to_position_m1(struct roboclaw *rc, uint8_t address, int32_t pos_m1)
+{
+    int bytes, ret;
+    uint16_t sent_crc16;
+
+    bytes = encode_move_to_position_m1(rc->buffer, address, &sent_crc16, pos_m1);
+
+    if ((ret = send_cmd_wait_answer(rc, bytes, ROBOCLAW_ACK_BYTES, sent_crc16)) < 0)
+        return ret; // IO error or retries exceeded
 
     return ROBOCLAW_OK;
 }

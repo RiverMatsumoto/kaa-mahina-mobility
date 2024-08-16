@@ -14,6 +14,8 @@
   <test_depend>ament_lint_common</test_depend>
   <depend>rclpy</depend>
   <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
   <depend>image_transport</depend>

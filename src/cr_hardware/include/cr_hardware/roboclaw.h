@@ -100,6 +100,7 @@ extern "C"
     int roboclaw_main_battery_voltage(struct roboclaw *rc, uint8_t address, int16_t *voltage);
     int roboclaw_encoders(struct roboclaw *rc, uint8_t address, int32_t *enc_m1, int32_t *enc_m2);
     int roboclaw_speed_error_m1m2(struct roboclaw *rc, uint8_t address, int32_t *enc_m1, int32_t *enc_m2);
+    int roboclaw_move_to_position_m1(struct roboclaw *rc, uint8_t address, int32_t pos_m1);
     int roboclaw_currents(struct roboclaw *rc, uint8_t address, float *current_m1, float *current_m2);
 
 #ifdef __cplusplus
