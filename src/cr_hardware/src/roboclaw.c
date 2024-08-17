@@ -21,6 +21,7 @@
 #include <sys/select.h> //select
 #include <malloc.h>		//malloc, free
 #include <errno.h>		//errno
+#include <stdio.h>		//debug
 
 // default library values
 enum
@@ -379,6 +380,26 @@ static int encode_speed_accel_m1m2(uint8_t *buffer, uint8_t address, int32_t spe
     return bytes;
 }
 
+static int encode_move_to_position_m1(uint8_t *buffer, uint8_t address, uint32_t pos_m1)
+{
+    uint8_t bytes = 0;
+    buffer[bytes++] = address;
+    buffer[bytes++] = M1POSITION;
+    bytes += encode_uint32(buffer, bytes, pos_m1);
+    buffer[bytes++] = 0; // buffer
+    bytes += encode_checksum(buffer, bytes);
+    return bytes;
+}
+
+static int encode_reset_encoders(uint8_t *buffer, uint8_t address)
+{
+    uint8_t bytes = 0;
+    buffer[bytes++] = address;
+    buffer[bytes++] = RESETENC;
+    bytes += encode_checksum(buffer, bytes);
+    return bytes;
+}
+
 // encode read commands functions
 //
 // roboclaw doesn't expect checksum sent on commands with replies
@@ -426,16 +447,6 @@ static int encode_read_speed_error_m1m2(uint8_t *buffer, uint8_t address, uint16
     uint8_t bytes = 0;
     buffer[bytes++] = address;
     buffer[bytes++] = GETSPEEDERRORS;
-    *cmd_crc16 = calculate_crc16(buffer, bytes);
-    return bytes;
-}
-
-static int encode_move_to_position_m1(uint8_t *buffer, uint8_t address, uint16_t *cmd_crc16, int32_t pos_m1)
-{
-    uint8_t bytes = 0;
-    buffer[bytes++] = address;
-    encode_uint32(buffer, bytes, pos_m1);
-    buffer[bytes++] = 0; // buffer
     *cmd_crc16 = calculate_crc16(buffer, bytes);
     return bytes;
 }
@@ -751,6 +762,16 @@ int roboclaw_speed_accel_m1m2(struct roboclaw *rc, uint8_t address, int speed_m1
     int bytes = encode_speed_accel_m1m2(rc->buffer, address, speed_m1, speed_m2, accel);
     return send_cmd_wait_answer(rc, bytes, ROBOCLAW_ACK_BYTES, 0);
 }
+int roboclaw_move_to_position_m1(struct roboclaw *rc, uint8_t address, uint32_t pos_m1)
+{
+    int bytes = encode_move_to_position_m1(rc->buffer, address, pos_m1);
+    return send_cmd_wait_answer(rc, bytes, ROBOCLAW_ACK_BYTES, 0);
+}
+int roboclaw_reset_encoders(struct roboclaw *rc, uint8_t address)
+{
+    int bytes = encode_reset_encoders(rc->buffer, address);
+    return send_cmd_wait_answer(rc, bytes, ROBOCLAW_ACK_BYTES, 0);
+}
 
 /* User communication functions
  * Commands with replies, on success roboclaw replies with answer followed by CRC checksum
@@ -831,19 +852,6 @@ int roboclaw_speed_error_m1m2(struct roboclaw *rc, uint8_t address, int32_t *enc
         return ret; // IO error or retries exceeded
     
     decode_read_speed_error_m1m2(rc->buffer + bytes, enc_m1, enc_m2);
-
-    return ROBOCLAW_OK;
-}
-
-int roboclaw_move_to_position_m1(struct roboclaw *rc, uint8_t address, int32_t pos_m1)
-{
-    int bytes, ret;
-    uint16_t sent_crc16;
-
-    bytes = encode_move_to_position_m1(rc->buffer, address, &sent_crc16, pos_m1);
-
-    if ((ret = send_cmd_wait_answer(rc, bytes, ROBOCLAW_ACK_BYTES, sent_crc16)) < 0)
-        return ret; // IO error or retries exceeded
 
     return ROBOCLAW_OK;
 }

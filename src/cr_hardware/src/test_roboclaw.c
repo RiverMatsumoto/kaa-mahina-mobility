@@ -100,6 +100,9 @@ int main(int argc, char **argv)
     voltage_float = (float)voltage / 10.0f;
     printf("battery voltage is : %f V\n", voltage_float);
 
+    if (roboclaw_move_to_position_m1(rc, address, 1000) != ROBOCLAW_OK)
+        informative_terminate(rc);
+
     printf("Getting polling rate...\n");
     // Get polling rate
     int count = 0;
