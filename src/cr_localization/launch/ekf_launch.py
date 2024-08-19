@@ -6,9 +6,9 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
-    ekf_config_path = PathJoinSubstitution([FindPackageShare('cr_localization'),
+    ekf_local_config_path = PathJoinSubstitution([FindPackageShare('cr_localization'),
                                             'config', 
-                                            'ekf_config.yaml'])
+                                            'ekf_local.yaml'])
     
     ekf_node = Node(
         package='robot_localization',
