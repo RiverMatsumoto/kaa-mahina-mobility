@@ -6,6 +6,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wno-unused-parameter -Wno-unused-function)
 endif()
 
+# to suppress a warning involving GLOB and symlinks
+# cmake_policy(SET CMP0009 NEW)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 
@@ -17,6 +20,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp_lifecycle
   # end ros2 control required 
   rclpy
+  std_srvs
   sensor_msgs
   geometry_msgs
 )
@@ -86,6 +90,13 @@ target_include_directories(bno055_driver_node PUBLIC
 ament_target_dependencies(bno055_driver_node rclcpp std_msgs sensor_msgs geometry_msgs)
 target_link_libraries(bno055_driver_node bno055)
 
+add_executable(lowering_mechanism_node src/lowering_mechanism.cpp)
+target_include_directories(lowering_mechanism_node PUBLIC 
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(lowering_mechanism_node rclcpp std_srvs)
+target_link_libraries(lowering_mechanism_node roboclaw)
+
 pluginlib_export_plugin_description_file(hardware_interface cr_hardware.xml)
 
 # libraries and executables
@@ -95,6 +106,7 @@ install(TARGETS
   test_roboclaw
   bno055_calibrate
   bno055_driver_node
+  lowering_mechanism_node
   DESTINATION lib/${PROJECT_NAME}
 )
 # includes
@@ -113,11 +125,13 @@ install(TARGETS cr_hardware roboclaw
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
+
 # python scripts
 install(
   PROGRAMS 
     ${PROJECT_NAME}/joy_to_twist_node.py
     ${PROJECT_NAME}/camera.py
+    ${PROJECT_NAME}/moisture_sensor.py
     ${PROJECT_NAME}/field_test_node.py
   DESTINATION lib/${PROJECT_NAME}
 )

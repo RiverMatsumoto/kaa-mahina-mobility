@@ -1,12 +1,11 @@
 from setuptools import find_packages, setup
 
 package_name = 'cr_hardware'
-submodules = 'cr_hardware/submodules'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name, submodules],
+    packages=find_packages(include=[package_name, package_name + '.*']),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -23,6 +22,7 @@ setup(
         'console_scripts': [
             'arduino_driver = cr_hardware.arduino_driver:main',
             'joy_control_node = cr_hardware.joy_to_twist_node:main',
+            'moisture_sensor = cr_hardware.moisture_sensor:main'
             # 'camera_node = cr_hardware.camera:main',
         ],
     },

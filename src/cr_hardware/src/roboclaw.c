@@ -21,6 +21,7 @@
 #include <sys/select.h> //select
 #include <malloc.h>		//malloc, free
 #include <errno.h>		//errno
+#include <stdio.h>		//debug
 
 // default library values
 enum
@@ -242,6 +243,8 @@ enum
     SETCONFIG = 98,
     GETCONFIG = 99,
     GETSPEEDERRORS = 111,
+    M1POSITION = 119,
+    M2POSITION = 120,
     SETM1MAXCURRENT = 133,
     SETM2MAXCURRENT = 134,
     GETM1MAXCURRENT = 135,
@@ -374,6 +377,26 @@ static int encode_speed_accel_m1m2(uint8_t *buffer, uint8_t address, int32_t spe
     bytes += encode_uint32(buffer, bytes, speed2);
     bytes += encode_checksum(buffer, bytes);
 
+    return bytes;
+}
+
+static int encode_move_to_position_m1(uint8_t *buffer, uint8_t address, uint32_t pos_m1)
+{
+    uint8_t bytes = 0;
+    buffer[bytes++] = address;
+    buffer[bytes++] = M1POSITION;
+    bytes += encode_uint32(buffer, bytes, pos_m1);
+    buffer[bytes++] = 0; // buffer
+    bytes += encode_checksum(buffer, bytes);
+    return bytes;
+}
+
+static int encode_reset_encoders(uint8_t *buffer, uint8_t address)
+{
+    uint8_t bytes = 0;
+    buffer[bytes++] = address;
+    buffer[bytes++] = RESETENC;
+    bytes += encode_checksum(buffer, bytes);
     return bytes;
 }
 
@@ -737,6 +760,16 @@ int roboclaw_speed_m1m2(struct roboclaw *rc, uint8_t address, int speed_m1, int 
 int roboclaw_speed_accel_m1m2(struct roboclaw *rc, uint8_t address, int speed_m1, int speed_m2, int accel)
 {
     int bytes = encode_speed_accel_m1m2(rc->buffer, address, speed_m1, speed_m2, accel);
+    return send_cmd_wait_answer(rc, bytes, ROBOCLAW_ACK_BYTES, 0);
+}
+int roboclaw_move_to_position_m1(struct roboclaw *rc, uint8_t address, uint32_t pos_m1)
+{
+    int bytes = encode_move_to_position_m1(rc->buffer, address, pos_m1);
+    return send_cmd_wait_answer(rc, bytes, ROBOCLAW_ACK_BYTES, 0);
+}
+int roboclaw_reset_encoders(struct roboclaw *rc, uint8_t address)
+{
+    int bytes = encode_reset_encoders(rc->buffer, address);
     return send_cmd_wait_answer(rc, bytes, ROBOCLAW_ACK_BYTES, 0);
 }
 
