@@ -16,11 +16,12 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/StopBag.srv"
   "srv/StartBag.srv"
+  "srv/StartTrial.srv"
   DEPENDENCIES common_interfaces # Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
 )
 
 install(
-  DIRECTORY cr_bag
+  DIRECTORY cr_bag launch
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -28,6 +29,8 @@ install(
   PROGRAMS 
     ${PROJECT_NAME}/trial_menu.py
     ${PROJECT_NAME}/record_trial.py
+    ${PROJECT_NAME}/trial_menu_and_runner.py
+    ${PROJECT_NAME}/trial_executor.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

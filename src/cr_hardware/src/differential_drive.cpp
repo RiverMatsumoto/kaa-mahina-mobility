@@ -284,7 +284,18 @@ hardware_interface::return_type DifferentialDrive::write(
     int res;
     
     // left wheels, 6600 accel means reach full speed in one second. Max speed is 6600 ticks per second
-    res = roboclaw_speed_accel_m1m2(rc_, 128, speed_left_cmd, speed_left_cmd, 6600 * 2);
+    int acceleration_left;
+    int acceleration_right;
+    if (speed_left_cmd > 0)
+        acceleration_left = (int)(speed_left_cmd / 5);
+    else
+        acceleration_left = (int)(last_speed_cmd_left_ / 5);
+    if (speed_right_cmd > 0)
+        acceleration_right = (int)(speed_right_cmd / 5);
+    else
+        acceleration_right = (int)(last_speed_cmd_right_ / 5);
+
+    res = roboclaw_speed_accel_m1m2(rc_, 128, speed_left_cmd, speed_left_cmd, acceleration_left);
     if (res != ROBOCLAW_OK)
     {
         return hardware_interface::return_type::ERROR;
@@ -292,7 +303,7 @@ hardware_interface::return_type DifferentialDrive::write(
 
     // right wheels
     res = 0;
-    res = roboclaw_speed_accel_m1m2(rc_, 129, speed_right_cmd, speed_right_cmd, 6600 * 2);
+    res = roboclaw_speed_accel_m1m2(rc_, 129, speed_right_cmd, speed_right_cmd, acceleration_right);
     if (res != ROBOCLAW_OK)
     {
         return hardware_interface::return_type::ERROR;

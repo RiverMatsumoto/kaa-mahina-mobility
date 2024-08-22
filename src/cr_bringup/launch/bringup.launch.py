@@ -4,17 +4,12 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
-    cr_hardware_launch_dir = PathJoinSubstitution([FindPackageShare('cr_hardware'), 'launch'])
+    vicon_client_launch_dir = PathJoinSubstitution([FindPackageShare('vicon_client'), 'launch'])
 
-    diff_drive_launch = IncludeLaunchDescription(
-        PathJoinSubstitution([cr_hardware_launch_dir, 
-                              'differential_drive.launch.py']))
-
-    imu_launch = IncludeLaunchDescription(
-        PathJoinSubstitution([cr_hardware_launch_dir, 
-                              'bno055.launch.py']))
+    vicon_client_launch = IncludeLaunchDescription(
+        PathJoinSubstitution([vicon_client_launch_dir, 
+                              'client.launch.py']))
 
     return LaunchDescription([
-        diff_drive_launch,
-        imu_launch
+        vicon_client_launch
     ])

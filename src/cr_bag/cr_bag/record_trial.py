@@ -23,13 +23,13 @@ class BagRecorder(Node):
         self.process = None
     
         self.topics_to_record = [
-            "/vicon/cuberover/cuberover",
-            "/imu",
-            "/absolute_orientation",
+            # "/vicon/cuberover/cuberover",
+            # "/imu",
+            # "/absolute_orientation",
             "/differential_drive_controller/cmd_vel",
-            "/joint_states",
-            "/rpi1/image_raw/compressed",
-            "rpi2/image_raw/compressed"
+            # "/joint_states",
+            # "/rpi1/image_raw/compressed",
+            # "rpi2/image_raw/compressed"
         ]
 
     def start_recording_callback(self, request, response):
@@ -61,10 +61,12 @@ def main(args=None):
     rclpy.init(args=args)
     bag_recorder = BagRecorder()
 
-    rclpy.spin(bag_recorder)
-
-    bag_recorder.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(bag_recorder)
+        bag_recorder.destroy_node()
+        rclpy.shutdown()
+    except:
+        bag_recorder.get_logger().info('Keyboard Interrupt (SIGINT) received, shutting down...')
     
 if __name__ == "__main__":
     main()

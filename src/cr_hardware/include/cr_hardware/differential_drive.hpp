@@ -56,6 +56,8 @@ private:
     bool debug_;
     double wheel_radius_;
     double circumference_;
+    int last_speed_cmd_left_;
+    int last_speed_cmd_right_;
     const double enc_ticks_per_revolution_ = 610;
     const double revolutions_per_enc_tick_ = 1 / 610;
 };
