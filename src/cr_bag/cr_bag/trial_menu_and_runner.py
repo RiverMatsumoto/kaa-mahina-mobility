@@ -51,7 +51,7 @@ class BagBuilder(QWidget):
         self.speed_label = QLabel('Speed (cm/s): ')
         self.speed_combo = QComboBox(self)
         self.speed_combo.addItems(['1', '2', '3', '4', '5', 
-                                        '6', '7', '8', '9', '10'
+                                        '6', '7', '8', '9', '10', 
                                         '11', '12', '13', '14'])
         speed_layout.addWidget(self.speed_label)
         speed_layout.addWidget(self.speed_combo)
@@ -117,7 +117,7 @@ class BagBuilder(QWidget):
             self.node_handle.get_logger().info(f"Started recording: {'success' if response.success else 'failed'}")
             
             start_trial_request = StartTrial.Request()
-            start_trial_request.speed = float(self.speed_combo.currentText())
+            start_trial_request.speed = float(self.speed_combo.currentText()) / 100
             start_trial_future = self.start_trial_client.call_async(start_trial_request)
             self.node_handle.get_logger().info(f"Sending trial commands")
             rclpy.spin_until_future_complete(self.node_handle, start_trial_future)

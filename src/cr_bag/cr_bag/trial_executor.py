@@ -10,7 +10,7 @@ class TrialExecutor(Node):
         super().__init__('trial_executor')
         self.publisher = self.create_publisher(Twist, '/differential_drive_controller/cmd_vel', 10)
         self.declare_parameter('publish_frequency', 10)
-        self.declare_parameter('duration', 42)
+        self.declare_parameter('duration', 43)
         self.publish_frequency = self.get_parameter('publish_frequency').value
         self.duration = self.get_parameter('duration').value
         self.twist_msg = Twist()

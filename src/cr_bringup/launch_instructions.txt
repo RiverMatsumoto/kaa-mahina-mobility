@@ -1,0 +1,12 @@
+Things to launch:
+On rpi1:
+- wheel control (diff drive)
+- imu
+- left camera
+
+On rpi2
+- right camera
+
+On laptop:
+- vicon client
+- foxglove studio or rqt to monitor logging and messages
