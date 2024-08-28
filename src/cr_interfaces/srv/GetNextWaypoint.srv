@@ -1,0 +1,9 @@
+# GetNextWaypoint.srv
+
+# Request
+float32 threshold
+
+---
+# Response
+int32 column
+int32 row

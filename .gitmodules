@@ -7,3 +7,6 @@
 [submodule "src/ros2-ublox-zedf9p"]
 	path = src/ros2-ublox-zedf9p
 	url = https://github.com/gokulp01/ros2-ublox-zedf9p.git
+[submodule "src/navigation2_tutorials"]
+	path = src/navigation2_tutorials
+	url = https://github.com/ros-navigation/navigation2_tutorials.git

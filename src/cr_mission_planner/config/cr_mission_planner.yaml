@@ -1,0 +1,7 @@
+cr_mission_planner_node:
+  ros__parameters:
+    initialLatitude: 0.0
+    initialLongitude: 0.0
+    initialBearing: 0.0
+    gridLatitudeLength: 5
+    gridLongitudeLength: 5
