@@ -2,22 +2,21 @@
 #pragma once
 
 #include <smacc2/smacc.hpp>
-#include <smacc2/client_bases/smacc_subscriber_client.hpp>
-#include <cr_mission_planner/global_blackboard.hpp>
 #include <cr_interfaces/srv/get_next_waypoint.hpp>
+#include <cr_mission_planner/global_blackboard.hpp>
+#include <smacc2/client_bases/smacc_subscriber_client.hpp>
+#include <smacc2/smacc.hpp>
 #include <std_msgs/msg/float32.hpp>
 
 namespace sm_trial_planner
 {
 // EVENTS
 template <typename TSource, typename TOrthogonal>
-struct EvTimeElapsed : sc::event<EvTimeElapsed<TSource, TOrthogonal>> {};
+struct EvTimeElapsed : sc::event<EvTimeElapsed<TSource, TOrthogonal>>
+{
+};
 
-// template <typename TSource, typename TOrthogonal>
-// struct EvTimer : sc::event<EvTimer<TSource, TOrthogonal>>
-
-template <typename MessageType>
-class CbTimedSubscriber : public smacc2::SmaccClientBehavior
+template <typename MessageType> class CbTimedSubscriber : public smacc2::SmaccClientBehavior
 {
 
 public:
@@ -25,34 +24,34 @@ public:
 
   void onEntry() override
   {
+  }
+
+  void onExit() override { RCLCPP_INFO(this->getNode()->get_logger(), "CbTimedSubscribe: onExit"); }
+
+  template <typename TOrthogonal, typename TSourceObject> void onOrthogonalAllocation()
+  {
+    this->postTimeElapsedEvent_ = [=]()
+    { this->template postEvent<EvTimeElapsed<TSourceObject, TOrthogonal>>(); };
+  }
+
+  void startTimerAndSubscribing()
+  {
     RCLCPP_INFO(this->getNode()->get_logger(), "CbTimedSubscribe: onEntry");
 
     // Get the subscriber client
     this->requiresClient(subscriberClient_);
     subscriberClient_->onMessageReceived(&CbTimedSubscriber<MessageType>::onMessageReceived, this);
-    subscriberClient_->onFirstMessageReceived(&CbTimedSubscriber<MessageType>::onFirstMessageReceived, this);
+    subscriberClient_->onFirstMessageReceived(
+        &CbTimedSubscriber<MessageType>::onFirstMessageReceived, this);
 
     startTime_ = this->getNode()->get_clock()->now();
-  }
-
-  void onExit() override
-  {
-    RCLCPP_INFO(this->getNode()->get_logger(), "CbTimedSubscribe: onExit");
-  }
-
-  template <typename TOrthogonal, typename TSourceObject>
-  void onOrthogonalAllocation()
-  {
-    this->postTimeElapsedEvent_ = [=]()
-    {
-      this->template postEvent<EvTimeElapsed<TSourceObject, TOrthogonal>>();
-    };
   }
 
 protected:
   virtual void onMessageReceived(const MessageType &msg)
   {
-    // RCLCPP_INFO_STREAM(getNode()->get_logger(), "CbTimedSubscriber Duration: " << (startTime_ - this->getNode()->get_clock()->now()));
+    // RCLCPP_INFO_STREAM(getNode()->get_logger(), "CbTimedSubscriber Duration: " << (startTime_ -
+    // this->getNode()->get_clock()->now()));
 
     auto timeElapsed = this->getNode()->get_clock()->now() - startTime_;
     RCLCPP_INFO_STREAM(getNode()->get_logger(), "Duration in seconds: " << timeElapsed.seconds());
@@ -72,14 +71,16 @@ protected:
       // request->threshold = 1.5f;  // Example threshold value
 
       // auto result_future = client_->async_send_request(request);
-      
+
       // // Wait for the result
-      // if (rclcpp::spin_until_future_complete(getNode()->get_node_base_interface(), result_future) ==
+      // if (rclcpp::spin_until_future_complete(getNode()->get_node_base_interface(), result_future)
+      // ==
       //     rclcpp::FutureReturnCode::SUCCESS)
       // {
       //   auto response = result_future.get();
-      //   RCLCPP_INFO(this->get_logger(), "Received response: column = %d, row = %d", response->column, response->row);
-      // } 
+      //   RCLCPP_INFO(this->get_logger(), "Received response: column = %d, row = %d",
+      //   response->column, response->row);
+      // }
       // else
       // {
       //   RCLCPP_ERROR(this->get_logger(), "Failed to call service");

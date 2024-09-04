@@ -1,4 +1,5 @@
 
+#pragma once
 #include <nav2z_client/nav2z_client.hpp>
 #include <smacc2/smacc.hpp>
 

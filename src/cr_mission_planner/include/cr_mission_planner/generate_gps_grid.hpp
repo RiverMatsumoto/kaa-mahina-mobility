@@ -5,11 +5,13 @@
 #include <geodesy/utm.h>
 #include <geographic_msgs/msg/geo_point.hpp>
 
-#include <iostream>
-#include <iomanip>
+#include <geographic_msgs/msg/geo_pose_stamped.hpp>
+
 #include <vector>
 #include <cmath>
 #include <utility>
+#include <rclcpp/rclcpp.hpp>
+#include "global_blackboard.hpp"
 
 const double R = 6378137.0; // radius of earth
 
@@ -66,7 +68,7 @@ void gpsToMapFrame(double latitude, double longitude, double &x, double &y);
 void addWaypoint(double latitude, double longitude, double altitude, GlobalBlackboard &bb, std::string frame_id = "map")
 {
     geometry_msgs::msg::PoseStamped waypoint;
-    
+
     // Convert GPS coordinates to map frame coordinates
     double x, y;
     gpsToMapFrame(latitude, longitude, x, y);

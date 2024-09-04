@@ -1,0 +1,8 @@
+
+BasedOnStyle: LLVM
+BreakBeforeBraces: Allman
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+AllowShortIfStatementsOnASingleLine: false  # Keeps if statements more readable
+ColumnLimit: 100     # Limit line length (adjust as needed)

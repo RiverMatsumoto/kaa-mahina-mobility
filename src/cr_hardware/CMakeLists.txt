@@ -133,6 +133,8 @@ install(
     ${PROJECT_NAME}/camera.py
     ${PROJECT_NAME}/moisture_sensor.py
     ${PROJECT_NAME}/field_test_node.py
+    ${PROJECT_NAME}/test_service.py
+    ${PROJECT_NAME}/lower_mechanism_test_server.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
