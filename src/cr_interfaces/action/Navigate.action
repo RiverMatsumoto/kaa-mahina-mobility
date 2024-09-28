@@ -1,0 +1,14 @@
+# Goal definition
+string utm_zone          # UTM Zone (e.g., '04Q')
+float64 utm_easting      # UTM Easting (meters)
+float64 utm_northing     # UTM Northing (meters)
+
+---
+
+# Result definition
+bool success
+
+---
+
+# Feedback definition
+float64 distance_remaining

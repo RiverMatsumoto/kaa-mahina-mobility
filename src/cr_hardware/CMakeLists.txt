@@ -23,6 +23,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   std_srvs
   sensor_msgs
   geometry_msgs
+  cr_interfaces
 )
 
 # find dependencies
@@ -135,6 +136,8 @@ install(
     ${PROJECT_NAME}/field_test_node.py
     ${PROJECT_NAME}/test_service.py
     ${PROJECT_NAME}/lower_mechanism_test_server.py
+    ${PROJECT_NAME}/navigate_to_position_server.py
+    ${PROJECT_NAME}/navigate_client.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
