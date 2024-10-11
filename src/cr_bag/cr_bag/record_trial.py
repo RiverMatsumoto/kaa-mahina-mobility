@@ -22,14 +22,14 @@ class BagRecorder(Node):
         self.start_srv = self.create_service(StartBag, 'start_recording', self.start_recording_callback)
         self.process = None
     
+        # no need to record camera data, will be recording during trial and 
+        # exported to video in rosbag trial directory
         self.topics_to_record = [
             "/vicon/cuberover/cuberover",
             "/imu",
             "/absolute_orientation",
             "/differential_drive_controller/cmd_vel",
             "/joint_states",
-            "/rpi1/image_raw/compressed",
-            "/rpi2/image_raw/compressed"
         ]
 
     def start_recording_callback(self, request, response):

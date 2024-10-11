@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import sys
+import signal
+import time
 import asyncio
 from datetime import datetime
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, QCheckBox, QLabel, QFileDialog, QComboBox, QHBoxLayout
-from PyQt5.QtCore import QRunnable, pyqtSlot, QThreadPool
+from PyQt5.QtCore import QRunnable, pyqtSlot, QThreadPool, QCoreApplication, QTimer
 
 # ros2 imports
 import rclpy.service
@@ -107,17 +109,21 @@ class BagBuilder(QWidget):
         request = StartBag.Request()
         now = datetime.now()
         # bag name is split up into <motion><slope angle><date time>
-        request.bag_output = f"{self.selected_folder}/{self.motion_text_input.text()}_{self.slope_angle_combo.currentText()}deg_{now.strftime('%Y-%m-%d_%H-%M-%S')}.bag"
+        bag_output_dir = f"{self.selected_folder}/{self.motion_text_input.text()}_{self.slope_angle_combo.currentText()}deg_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
+        request.bag_output = bag_output_dir
 
         future = self.start_bag_client.call_async(request)
         rclpy.spin_until_future_complete(self.node_handle, future)  # Wait for the service to respond
 
         if future.result() is not None:
+            # give time for the directory to be recognized for the trial executor
+            time.sleep(1)
             response = future.result()
             self.node_handle.get_logger().info(f"Started recording: {'success' if response.success else 'failed'}")
             
             start_trial_request = StartTrial.Request()
             start_trial_request.speed = float(self.speed_combo.currentText()) / 100
+            start_trial_request.directory = bag_output_dir
             start_trial_future = self.start_trial_client.call_async(start_trial_request)
             self.node_handle.get_logger().info(f"Sending trial commands")
             rclpy.spin_until_future_complete(self.node_handle, start_trial_future)
@@ -145,8 +151,19 @@ class BagBuilder(QWidget):
         else:
             self.node_handle.get_logger().error('Service call failed')
 
+def signal_handler(sig, frame):
+    print("Ctrl+c Received. Exiting Trial Menu and Runner")
+    QCoreApplication.quit()
+
 def main(args=None):
     app = QApplication(sys.argv)
+    s = signal.signal(signal.SIGINT, signal_handler)
+
+    # Start a timer that periodically checks for signals, needed to quit on ctrl+c
+    timer = QTimer()
+    timer.timeout.connect(lambda: None)  # No-op to keep the event loop responsive
+    timer.start(100)  # Check every 100 ms
+
     bag_builder = BagBuilder()
     bag_builder.show()
     sys.exit(app.exec_())
