@@ -86,9 +86,9 @@ class BagBuilder(QWidget):
         self.start_recording_button.clicked.connect(self.start_recording)
         record_button_layout.addWidget(self.start_recording_button)
 
-        self.stop_recording_button = QPushButton('Stop Recording')
-        self.stop_recording_button.clicked.connect(self.stop_recording)
-        record_button_layout.addWidget(self.stop_recording_button)
+        # self.stop_recording_button = QPushButton('Stop Recording')
+        # self.stop_recording_button.clicked.connect(self.stop_recording)
+        # record_button_layout.addWidget(self.stop_recording_button)
         layout.addLayout(record_button_layout)
 
         self.setLayout(layout)
