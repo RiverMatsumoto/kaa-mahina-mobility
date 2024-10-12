@@ -13,23 +13,24 @@ installation for the ground station computer and ignore the Raspberry Pi softwar
 
 ### Build Software for Mobility Rover (Ground station computer and rover Raspberry Pis)
 #### Ground station computer
-Clone repository, run installation script, and run the build script
+Clone repository -> run installation script -> run the build script
+You must use the --recursive option to ensure that the ros2-vicon-receiver package is downloaded for ./install_libs.sh and to properly build everything.
 ```
-git clone git@github.com:RiverMatsumoto/kaa-mahina.git
+git clone --recursive git@github.com:RiverMatsumoto/kaa-mahina.git
 cd kaa-mahina
-# TODO ./install_libraries.sh
-./ccbuild.bash
-```
-#### For Rover Raspberry Pis
-Clone the repository and run the build script:
-```
-git clone git@github.com:RiverMatsumoto/kaa-mahina.git
-cd kaa-mahina
+./install_libs.sh
 ./ccbuild.bash
 ```
 
-### Build Software for Active Learning Rover (Ground station computer and rover onboard computers)
-TODO
+It is normal to have some stderr output after building
+
+#### For Rover Raspberry Pis
+Clone the repository and run the build script:
+```
+git clone -b rover git@github.com:RiverMatsumoto/kaa-mahina.git
+cd kaa-mahina
+./ccbuild.bash
+```
 
 ## Rover Hardware Components Used
 ### Mobility Rover
@@ -45,5 +46,5 @@ IMU - BNO055
 GPS - 2x ZED_F9P RTK GPS Boards (and antennas)
 Arduino Nano with Moisture Sensor (powered from connection to Raspberry Pi)
 Ubuntu 22.04 Laptop with ROS Humble installed
-Windows Laptop with Ublox's `u-center` GPS utilities app installed 
+Windows Laptop with Ublox's `u-center` GPS utilities app installed for GPS RTK correction for about 1-10cm GPS accuracy
 Batteries with 1 USB A output, 1 AC output, 1 DC output

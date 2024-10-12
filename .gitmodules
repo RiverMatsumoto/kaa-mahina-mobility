@@ -1,0 +1,3 @@
+[submodule "src/ros2-vicon-receiver"]
+	path = src/ros2-vicon-receiver
+	url = https://github.com/OPT4SMART/ros2-vicon-receiver.git

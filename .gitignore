@@ -9,7 +9,5 @@ temp
 src/ros2_control_demos
 src/basic_mobile_robot
 src/ROS2QtGui
-src/vicon_receiver
-src/ros2-vicon-receiver
 src/SMACC2
 src/RTK_GPS_NTRIP
