@@ -58,7 +58,9 @@ class TrialExecutor(Node):
     def start_trial_callback(self, request, response):
         if not self.recording:
             linear_x = request.speed
-            angular_z = 0.0  # Assuming straight motion for simplicity
+            # use radius from request to calculate angular_z
+            # angular velocity = linear velocity / radius
+            angular_z = linear_x / request.radius 
             self.execute_trial(linear_x, angular_z, request.directory)
         return response  # No response content needed
 
