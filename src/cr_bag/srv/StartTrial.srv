@@ -1,4 +1,5 @@
 float64 speed
+float64 radius
 string directory
 ---
 # no response

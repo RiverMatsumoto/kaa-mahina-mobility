@@ -58,6 +58,16 @@ class BagBuilder(QWidget):
         speed_layout.addWidget(self.speed_label)
         speed_layout.addWidget(self.speed_combo)
         layout.addLayout(speed_layout)
+
+        radius_layout = QHBoxLayout()
+        self.radius_label = QLabel('Radius (cm): ')
+        self.radius_combo = QComboBox(self)
+        radiuses = list(range(0, 180, 20))
+        radiuses = map(str, radiuses)
+        self.radius_combo.addItems(radiuses)
+        radius_layout.addWidget(self.radius_label)
+        radius_layout.addWidget(self.radius_combo)
+        layout.addLayout(radius_layout)
         
         motion_layout = QHBoxLayout()
         self.motion_label = QLabel('Motion Type: ')
@@ -124,6 +134,7 @@ class BagBuilder(QWidget):
             start_trial_request = StartTrial.Request()
             start_trial_request.speed = float(self.speed_combo.currentText()) / 100
             start_trial_request.directory = bag_output_dir
+            start_trial_request.radius = float(self.radius_combo.currentText()) / 100
             start_trial_future = self.start_trial_client.call_async(start_trial_request)
             self.node_handle.get_logger().info(f"Sending trial commands")
             rclpy.spin_until_future_complete(self.node_handle, start_trial_future)
