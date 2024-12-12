@@ -145,7 +145,7 @@ class BagBuilder(QWidget):
             start_trial_request.speed = float(self.speed_combo.currentText()) / 100
             start_trial_request.directory = bag_output_dir
             if self.radius_combo.currentText() == 'infinity':
-                start_trial_request.radius = 1000
+                start_trial_request.radius = float(1000)
             else:
                 if self.turn_dir_combo.currentText() == 'left':
                     start_trial_request.radius = (float(self.radius_combo.currentText()) + 0.1) / 100
