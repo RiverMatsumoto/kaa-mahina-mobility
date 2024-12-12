@@ -148,9 +148,9 @@ class BagBuilder(QWidget):
                 start_trial_request.radius = 1000
             else:
                 if self.turn_dir_combo.currentText() == 'left':
-                    start_trial_request.radius = float(self.radius_combo.currentText()) / 100
+                    start_trial_request.radius = (float(self.radius_combo.currentText()) + 0.1) / 100
                 elif self.turn_dir_combo.currentText() == 'right':
-                    start_trial_request.radius = float(self.radius_combo.currentText()) / 100 * -1
+                    start_trial_request.radius = (float(self.radius_combo.currentText()) - 0.1) / 100
             start_trial_future = self.start_trial_client.call_async(start_trial_request)
             self.node_handle.get_logger().info(f"Sending trial commands")
             rclpy.spin_until_future_complete(self.node_handle, start_trial_future)

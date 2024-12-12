@@ -60,8 +60,13 @@ class TrialExecutor(Node):
             linear_x = request.speed
             # use radius from request to calculate angular_z
             # angular velocity = linear velocity / radius
-            if request.radius == 0:
+            if request.radius <= 0.2 and request.radius >= 0:
+                # turn left in place
                 angular_z = linear_x
+                linear_x = 0
+            elif request.radius >= -0.2 and request.radius <= 0:
+                # turn right in place
+                angular_z = -linear_x
                 linear_x = 0
             elif request.radius == 1000:
                 # go straight
