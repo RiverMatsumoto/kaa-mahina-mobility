@@ -63,11 +63,21 @@ class BagBuilder(QWidget):
         self.radius_label = QLabel('Radius (cm): ')
         self.radius_combo = QComboBox(self)
         radiuses = list(range(0, 180, 20))
+        radiuses.append('infinity')
         radiuses = map(str, radiuses)
         self.radius_combo.addItems(radiuses)
         radius_layout.addWidget(self.radius_label)
         radius_layout.addWidget(self.radius_combo)
         layout.addLayout(radius_layout)
+
+        turn_dir_layout = QHBoxLayout()
+        self.turn_dir_label = QLabel('Turn Direction: ')
+        self.turn_dir_combo = QComboBox(self)
+        turn_dir = ['left', 'right']
+        self.turn_dir_combo.addItems(turn_dir)
+        turn_dir_layout.addWidget(self.turn_dir_label)
+        turn_dir_layout.addWidget(self.turn_dir_combo)
+        layout.addLayout(turn_dir_layout)
         
         motion_layout = QHBoxLayout()
         self.motion_label = QLabel('Motion Type: ')
@@ -134,7 +144,13 @@ class BagBuilder(QWidget):
             start_trial_request = StartTrial.Request()
             start_trial_request.speed = float(self.speed_combo.currentText()) / 100
             start_trial_request.directory = bag_output_dir
-            start_trial_request.radius = float(self.radius_combo.currentText()) / 100
+            if self.radius_combo.currentText() == 'infinity':
+                start_trial_request.radius = 1000
+            else:
+                if self.turn_dir_combo.currentText() == 'left':
+                    start_trial_request.radius = float(self.radius_combo.currentText()) / 100
+                elif self.turn_dir_combo.currentText() == 'right':
+                    start_trial_request.radius = float(self.radius_combo.currentText()) / 100 * -1
             start_trial_future = self.start_trial_client.call_async(start_trial_request)
             self.node_handle.get_logger().info(f"Sending trial commands")
             rclpy.spin_until_future_complete(self.node_handle, start_trial_future)

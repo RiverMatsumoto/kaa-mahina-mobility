@@ -1,5 +1,0 @@
-<launch>
-    <node pkg="cr_mission_planner" exec="cr_mission_planner_node" name="cr_mission_planner_node">
-        <param from="$(find-pkg-share cr_mission_planner)/config/sm_atomic_config.yaml"/>
-    </node>
-</launch>

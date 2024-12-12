@@ -60,7 +60,14 @@ class TrialExecutor(Node):
             linear_x = request.speed
             # use radius from request to calculate angular_z
             # angular velocity = linear velocity / radius
-            angular_z = linear_x / request.radius 
+            if request.radius == 0:
+                angular_z = linear_x
+                linear_x = 0
+            elif request.radius == 1000:
+                # go straight
+                angular_z = 0
+            else:
+                angular_z = linear_x / request.radius
             self.execute_trial(linear_x, angular_z, request.directory)
         return response  # No response content needed
 
